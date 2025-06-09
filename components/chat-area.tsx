@@ -4,10 +4,35 @@ import type React from "react"
 
 import type { RefObject } from "react"
 import type { Message } from "@/types/chat"
-import { Settings2, SunMoon, ArrowUp, Globe, Paperclip, ChevronDown } from "lucide-react"
+import {
+  Settings2,
+  ArrowUp,
+  GlobeIcon,
+  Paperclip,
+  ChevronDown,
+  Search,
+  Pin,
+  Eye,
+  FileText,
+  Brain,
+  Gem,
+  FlaskConical,
+  Filter,
+  ChevronLeft,
+  Zap,
+  List,
+} from "lucide-react"
 import Link from "next/link"
 import MessageComponent from "@/components/message"
 import WelcomeScreen from "@/components/welcome-screen"
+import { useState } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 
 interface ChatAreaProps {
   messages: Message[]
@@ -28,19 +53,29 @@ export default function ChatArea({
   onPromptClick,
   setInputValue,
 }: ChatAreaProps) {
+  const [selectedModel, setSelectedModel] = useState("Gemini 2.5 Flash")
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
+  const [modelSearchQuery, setModelSearchQuery] = useState("")
+  const [modelSelectionView, setModelSelectionView] = useState<"favorites" | "all">("favorites")
+
+  const [activeFilters, setActiveFilters] = useState<string[]>([])
+  const [showOnlyFreeModels, setShowOnlyFreeModels] = useState(false)
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
+
+  const allFeatures = ["Fast", "Vision", "Search", "PDFs", "Reasoning", "Effort Control"]
+  const featureIcons: { [key: string]: React.ElementType } = {
+    Fast: Zap,
+    Vision: Eye,
+    Search: GlobeIcon,
+    PDFs: FileText,
+    Reasoning: Brain,
+    "Effort Control": Settings2,
+  }
+
   return (
     <main className="firefox-scrollbar-margin-fix min-h-pwa relative flex w-full flex-1 flex-col overflow-hidden transition-[width,height]">
       {/* Chat Background */}
-      <div className="absolute bottom-0 top-0 w-full overflow-hidden border-l border-t border-chat-border bg-chat-background bg-fixed pb-[140px] transition-all ease-snappy max-sm:border-none sm:translate-y-3.5 sm:rounded-tl-xl">
-        <div className="bg-noise absolute inset-0 -top-3.5 bg-fixed transition-transform ease-snappy [background-position:right_bottom]"></div>
-      </div>
-
-      {/* Top Gradient */}
-      <div className="absolute inset-x-3 top-0 z-10 box-content overflow-hidden border-b border-chat-border bg-gradient-noise-top/80 backdrop-blur-md transition-[transform,border] ease-snappy blur-fallback:bg-gradient-noise-top max-sm:hidden sm:h-3.5">
-        <div className="absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-gradient-noise-top to-transparent blur-fallback:hidden"></div>
-        <div className="absolute right-24 top-0 h-full w-8 bg-gradient-to-l from-gradient-noise-top to-transparent blur-fallback:hidden"></div>
-        <div className="absolute right-0 top-0 h-full w-24 bg-gradient-noise-top blur-fallback:hidden"></div>
-      </div>
+      <div className="absolute bottom-0 top-0 w-full overflow-hidden border-l border-t border-chat-border bg-chat-background bg-fixed pb-[140px] transition-all ease-snappy max-sm:border-none sm:translate-y-3.5 sm:rounded-tl-xl"></div>
 
       {/* Top Right Corner */}
       <div className="absolute bottom-0 top-0 w-full">
@@ -55,8 +90,54 @@ export default function ChatArea({
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 group relative size-8"
               tabIndex={-1}
               data-state="closed"
+              onClick={() => {
+                const html = document.documentElement
+                const isDark = html.classList.contains("dark")
+                if (isDark) {
+                  html.classList.remove("dark")
+                  localStorage.setItem("theme", "light")
+                } else {
+                  html.classList.add("dark")
+                  localStorage.setItem("theme", "dark")
+                }
+              }}
             >
-              <SunMoon className="absolute size-4" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-sun absolute size-4 rotate-0 scale-100 transition-all duration-200 dark:rotate-90 dark:scale-0"
+              >
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2"></path>
+                <path d="M12 20v2"></path>
+                <path d="m4.93 4.93 1.41 1.41"></path>
+                <path d="m17.66 17.66 1.41 1.41"></path>
+                <path d="M2 12h2"></path>
+                <path d="M20 12h2"></path>
+                <path d="m6.34 17.66-1.41 1.41"></path>
+                <path d="m19.07 4.93-1.41 1.41"></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-moon absolute size-4 rotate-90 scale-0 transition-all duration-200 dark:rotate-0 dark:scale-100"
+              >
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+              </svg>
               <span className="sr-only">Toggle theme</span>
             </button>
           </div>
@@ -179,17 +260,343 @@ export default function ChatArea({
 
                       <div className="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
                         <div className="ml-[-7px] flex items-center gap-1">
-                          <button
-                            className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-8 rounded-md text-xs relative gap-2 px-2 py-1.5 -mb-2 text-muted-foreground"
-                            type="button"
-                            id="radix-:r8:"
-                            aria-haspopup="menu"
-                            aria-expanded="false"
-                            data-state="closed"
-                          >
-                            <div className="text-left text-sm font-medium">Gemini 2.5 Flash</div>
-                            <ChevronDown className="right-0 size-4" />
-                          </button>
+                          <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-8 rounded-md text-xs relative gap-2 px-2 py-1.5 -mb-2 text-muted-foreground"
+                                type="button"
+                              >
+                                <div className="text-left text-sm font-medium">{selectedModel}</div>
+                                <ChevronDown className="right-0 size-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              className="z-50 min-w-[8rem] bg-popover text-popover-foreground shadow-md !outline !outline-1 !outline-chat-border/20 dark:!outline-white/5 relative overflow-hidden rounded-lg !border-none p-0 pb-11 pt-10 max-w-[calc(100vw-2rem)] transition-[height,width] ease-snappy max-sm:mx-4 sm:w-[640px] max-h-[calc(100vh-80px)] min-h-[300px]"
+                              side="top"
+                              align="start"
+                            >
+                              {/* Search Header */}
+                              <div className="fixed inset-x-4 top-0 rounded-t-lg bg-popover px-3.5 pt-0.5 sm:inset-x-0">
+                                <div className="flex items-center">
+                                  <Search className="ml-px mr-3 !size-4 text-muted-foreground/75" />
+                                  <input
+                                    role="searchbox"
+                                    aria-label="Search models"
+                                    placeholder="Search models..."
+                                    className="w-full bg-transparent py-2 text-sm text-foreground placeholder-muted-foreground/50 placeholder:select-none focus:outline-none"
+                                    value={modelSearchQuery}
+                                    onChange={(e) => setModelSearchQuery(e.target.value)}
+                                  />
+                                </div>
+                                <div className="border-b border-chat-border px-3"></div>
+                              </div>
+
+                              {/* Models Grid */}
+                              <div className="max-h-full overflow-y-scroll px-1.5 sm:w-[640px] scroll-shadow">
+                                <div className="flex w-full flex-wrap justify-start gap-3.5 pb-4 pl-3 pr-2 pt-2.5">
+                                  {modelSelectionView === "favorites" && (
+                                    <>
+                                      <div className="-mb-2 ml-0 flex w-full select-none items-center justify-start gap-1.5 text-color-heading">
+                                        <Pin className="mt-px size-4" />
+                                        Favorites
+                                      </div>
+                                      {[
+                                        {
+                                          name: "Gemini 2.5 Flash",
+                                          provider: "Google",
+                                          features: ["Vision", "Search", "PDFs"],
+                                        },
+                                        {
+                                          name: "Gemini 2.5 Pro",
+                                          provider: "Google",
+                                          features: ["Vision", "Search", "PDFs", "Reasoning"],
+                                          experimental: true,
+                                        },
+                                        {
+                                          name: "GPT ImageGen",
+                                          provider: "OpenAI",
+                                          features: ["Vision"],
+                                          premium: true,
+                                        },
+                                        { name: "o4-mini", provider: "OpenAI", features: ["Vision", "Reasoning"] },
+                                        {
+                                          name: "Claude 4 Sonnet (Reasoning)",
+                                          provider: "Anthropic",
+                                          features: ["Vision", "PDFs", "Reasoning"],
+                                          premium: true,
+                                        },
+                                        {
+                                          name: "DeepSeek R1 (Llama Distilled)",
+                                          provider: "DeepSeek",
+                                          features: ["Reasoning"],
+                                        },
+                                      ]
+                                        .filter((model) => {
+                                          if (!modelSearchQuery) return true
+                                          return (
+                                            model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
+                                            model.provider.toLowerCase().includes(modelSearchQuery.toLowerCase())
+                                          )
+                                        })
+                                        .filter((model) => {
+                                          if (activeFilters.length === 0) return true
+                                          return activeFilters.every((filter) => model.features.includes(filter))
+                                        })
+                                        .filter((model) => {
+                                          if (!showOnlyFreeModels) return true
+                                          return !model.premium && !model.experimental // Adjust as needed
+                                        })
+                                        .map((model) => (
+                                          <div key={model.name} className="group relative">
+                                            <button
+                                              className="group relative flex h-[148px] w-[108px] cursor-pointer flex-col items-start gap-0.5 overflow-hidden rounded-xl border border-chat-border/50 bg-sidebar/20 px-1 py-3 text-color-heading hover:bg-accent/30 hover:text-color-heading"
+                                              onClick={() => {
+                                                setSelectedModel(model.name)
+                                                setIsModelDropdownOpen(false)
+                                              }}
+                                            >
+                                              <div className="flex w-full flex-col items-center justify-center gap-1 font-medium transition-colors">
+                                                <div className="size-7 text-[--model-primary] bg-muted rounded flex items-center justify-center">
+                                                  {model.provider.charAt(0)}
+                                                </div>
+                                                <div className="w-full text-center text-[--model-primary]">
+                                                  <div className="text-base font-semibold">
+                                                    {model.name.split(" ")[0]}
+                                                  </div>
+                                                  <div className="-mt-0.5 text-sm font-semibold">
+                                                    {model.name.split(" ").slice(1).join(" ")}
+                                                  </div>
+                                                </div>
+                                                {model.experimental && (
+                                                  <div className="absolute right-1.5 top-1.5 text-[--model-muted] opacity-80">
+                                                    <FlaskConical className="size-4" />
+                                                  </div>
+                                                )}
+                                                {model.premium && (
+                                                  <div className="absolute right-1.5 top-1.5 text-[--model-muted] opacity-80">
+                                                    <Gem className="size-4" />
+                                                  </div>
+                                                )}
+                                              </div>
+                                              <div className="absolute inset-x-0 bottom-3 flex w-full items-center justify-center gap-2">
+                                                {model.features.map((feature) => (
+                                                  <div
+                                                    key={feature}
+                                                    className="relative flex h-6 w-6 items-center justify-center overflow-hidden rounded-md text-[--color] dark:text-[--color-dark]"
+                                                  >
+                                                    <div className="absolute inset-0 bg-current opacity-20 dark:opacity-15"></div>
+                                                    {feature === "Vision" && <Eye className="h-4 w-4" />}
+                                                    {feature === "Search" && <GlobeIcon className="h-4 w-4" />}
+                                                    {feature === "PDFs" && <FileText className="h-4 w-4" />}
+                                                    {feature === "Reasoning" && <Brain className="h-4 w-4" />}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </button>
+                                          </div>
+                                        ))}
+                                    </>
+                                  )}
+                                  {modelSelectionView === "all" && (
+                                    <>
+                                      <div className="-mb-2 ml-2 mt-1 w-full select-none text-color-heading">
+                                        All Models
+                                      </div>
+                                      {[
+                                        ...[
+                                          {
+                                            name: "Gemini 2.5 Flash",
+                                            provider: "Google",
+                                            features: ["Vision", "Search", "PDFs"],
+                                          },
+                                          {
+                                            name: "Gemini 2.5 Pro",
+                                            provider: "Google",
+                                            features: ["Vision", "Search", "PDFs", "Reasoning"],
+                                            experimental: true,
+                                          },
+                                          {
+                                            name: "GPT ImageGen",
+                                            provider: "OpenAI",
+                                            features: ["Vision"],
+                                            premium: true,
+                                          },
+                                          { name: "o4-mini", provider: "OpenAI", features: ["Vision", "Reasoning"] },
+                                          {
+                                            name: "Claude 4 Sonnet (Reasoning)",
+                                            provider: "Anthropic",
+                                            features: ["Vision", "PDFs", "Reasoning"],
+                                            premium: true,
+                                          },
+                                          {
+                                            name: "DeepSeek R1 (Llama Distilled)",
+                                            provider: "DeepSeek",
+                                            features: ["Reasoning"],
+                                          },
+                                        ],
+                                        ...[
+                                          {
+                                            name: "Gemini 2.0 Flash",
+                                            provider: "Google",
+                                            features: ["Vision", "Search", "PDFs"],
+                                          },
+                                          { name: "GPT-4o", provider: "OpenAI", features: ["Vision"] },
+                                          {
+                                            name: "Claude 3.5 Sonnet",
+                                            provider: "Anthropic",
+                                            features: ["Vision", "PDFs"],
+                                            premium: true,
+                                          },
+                                        ],
+                                      ]
+                                        .filter((model) => {
+                                          if (!modelSearchQuery) return true
+                                          return (
+                                            model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
+                                            model.provider.toLowerCase().includes(modelSearchQuery.toLowerCase())
+                                          )
+                                        })
+                                        .filter((model) => {
+                                          if (activeFilters.length === 0) return true
+                                          return activeFilters.every((filter) => model.features.includes(filter))
+                                        })
+                                        .filter((model) => {
+                                          if (!showOnlyFreeModels) return true
+                                          return !model.premium && !model.experimental
+                                        })
+                                        .map((model) => (
+                                          <div key={model.name} className="group relative">
+                                            <button
+                                              className="group relative flex h-[148px] w-[108px] cursor-pointer flex-col items-start gap-0.5 overflow-hidden rounded-xl border border-chat-border/50 bg-sidebar/20 px-1 py-3 text-color-heading hover:bg-accent/30 hover:text-color-heading"
+                                              onClick={() => {
+                                                setSelectedModel(model.name)
+                                                setIsModelDropdownOpen(false)
+                                              }}
+                                            >
+                                              <div className="flex w-full flex-col items-center justify-center gap-1 font-medium transition-colors">
+                                                <div className="size-7 text-[--model-primary] bg-muted rounded flex items-center justify-center">
+                                                  {model.provider.charAt(0)}
+                                                </div>
+                                                <div className="w-full text-center text-[--model-primary]">
+                                                  <div className="text-base font-semibold">
+                                                    {model.name.split(" ")[0]}
+                                                  </div>
+                                                  <div className="-mt-0.5 text-sm font-semibold">
+                                                    {model.name.split(" ").slice(1).join(" ")}
+                                                  </div>
+                                                </div>
+                                                {model.experimental && (
+                                                  <div className="absolute right-1.5 top-1.5 text-[--model-muted] opacity-80">
+                                                    <FlaskConical className="size-4" />
+                                                  </div>
+                                                )}
+                                                {model.premium && (
+                                                  <div className="absolute right-1.5 top-1.5 text-[--model-muted] opacity-80">
+                                                    <Gem className="size-4" />
+                                                  </div>
+                                                )}
+                                              </div>
+                                              <div className="absolute inset-x-0 bottom-3 flex w-full items-center justify-center gap-2">
+                                                {model.features.map((feature) => (
+                                                  <div
+                                                    key={feature}
+                                                    className="relative flex h-6 w-6 items-center justify-center overflow-hidden rounded-md text-[--color] dark:text-[--color-dark]"
+                                                  >
+                                                    <div className="absolute inset-0 bg-current opacity-20 dark:opacity-15"></div>
+                                                    {feature === "Vision" && <Eye className="h-4 w-4" />}
+                                                    {feature === "Search" && <GlobeIcon className="h-4 w-4" />}
+                                                    {feature === "PDFs" && <FileText className="h-4 w-4" />}
+                                                    {feature === "Reasoning" && <Brain className="h-4 w-4" />}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </button>
+                                          </div>
+                                        ))}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Footer */}
+                              <div className="fixed inset-x-4 bottom-0 flex items-center justify-between rounded-b-lg bg-popover pb-1 pl-1 pr-2.5 pt-1.5 sm:inset-x-0">
+                                <div className="absolute inset-x-3 top-0 border-b border-chat-border"></div>
+                                <button
+                                  className="justify-center whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-9 px-4 py-2 flex items-center gap-2 pl-2 text-sm text-muted-foreground"
+                                  onClick={() => {
+                                    setModelSelectionView((prev) => (prev === "favorites" ? "all" : "favorites"))
+                                  }}
+                                  aria-label={
+                                    modelSelectionView === "favorites"
+                                      ? "Switch to all models view"
+                                      : "Switch to favorites view"
+                                  }
+                                >
+                                  {modelSelectionView === "favorites" ? (
+                                    <>
+                                      {/* Icon for "All Models" (e.g., List or ChevronRight) */}
+                                      <List className="h-4 w-4" />
+                                      <span>All Models</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      {/* Icon for "Favorites" (e.g., Pin or ChevronLeft as in screenshot) */}
+                                      <ChevronLeft className="h-4 w-4" />
+                                      <span>Favorites</span>
+                                    </>
+                                  )}
+                                </button>
+                                <DropdownMenu open={isFilterDropdownOpen} onOpenChange={setIsFilterDropdownOpen}>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-8 rounded-md text-xs relative gap-2 px-2 text-muted-foreground">
+                                      <Filter className="h-4 w-4" />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent className="w-56" side="top" align="end">
+                                    {allFeatures.map((feature) => {
+                                      const IconComponent = featureIcons[feature]
+                                      return (
+                                        <DropdownMenuCheckboxItem
+                                          key={feature}
+                                          checked={activeFilters.includes(feature)}
+                                          onCheckedChange={(checked) => {
+                                            setActiveFilters((prev) =>
+                                              checked ? [...prev, feature] : prev.filter((f) => f !== feature),
+                                            )
+                                          }}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            {IconComponent && (
+                                              <div
+                                                className="relative flex h-6 w-6 items-center justify-center overflow-hidden rounded-md"
+                                                style={
+                                                  {
+                                                    "--color-dark": "hsl(46 77% 79%)",
+                                                    "--color": "hsl(46 77% 52%)",
+                                                  } as React.CSSProperties
+                                                }
+                                              >
+                                                <div className="absolute inset-0 bg-current opacity-20 dark:opacity-15"></div>
+                                                <IconComponent className="h-4 w-4" />
+                                              </div>
+                                            )}
+                                            <span>{feature}</span>
+                                          </div>
+                                        </DropdownMenuCheckboxItem>
+                                      )
+                                    })}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem
+                                      checked={showOnlyFreeModels}
+                                      onCheckedChange={setShowOnlyFreeModels}
+                                    >
+                                      Only show free plan models
+                                    </DropdownMenuCheckboxItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
 
                           <button
                             className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 px-3 text-xs -mb-1.5 h-auto gap-2 rounded-full border border-solid border-secondary-foreground/10 py-1.5 pl-2 pr-2.5 text-muted-foreground max-sm:p-2"
@@ -200,7 +607,7 @@ export default function ChatArea({
                             aria-controls="radix-:ra:"
                             data-state="closed"
                           >
-                            <Globe className="h-4 w-4" />
+                            <GlobeIcon className="h-4 w-4" />
                             <span className="max-sm:hidden">Search</span>
                           </button>
 
