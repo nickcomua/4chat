@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--inspect' next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/pouchdb-adapter": "^2.9.1",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
@@ -39,15 +40,21 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@tailwindcss/typography": "latest",
     "autoprefixer": "^10.4.20",
+    "babel-plugin-react-compiler": "19.1.0-rc.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
     "input-otp": "1.4.1",
+    "leveldown": "5.6.0",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
+    "next-auth": "5.0.0-beta.28",
     "next-themes": "^0.4.4",
+    "pouchdb": "^9.0.0",
+    "pouchdb-find": "^9.0.0",
+    "pouchdb-security": "^4.2.0",
     "react": "^19",
     "react-day-picker": "8.10.1",
     "react-dom": "^19",
@@ -62,10 +69,12 @@
   },
   "devDependencies": {
     "@types/node": "^22",
+    "@types/pouchdb": "^6.4.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }

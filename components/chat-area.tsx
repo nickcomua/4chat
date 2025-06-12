@@ -25,7 +25,7 @@ import {
 import Link from "next/link"
 import MessageComponent from "@/components/message"
 import WelcomeScreen from "@/components/welcome-screen"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +37,6 @@ import {
 interface ChatAreaProps {
   messages: Message[]
   inputValue: string
-  textareaRef: RefObject<HTMLTextAreaElement>
   onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   onSubmit: (e: React.FormEvent) => void
   onPromptClick: (prompt: string) => void
@@ -47,12 +46,39 @@ interface ChatAreaProps {
 export default function ChatArea({
   messages,
   inputValue,
-  textareaRef,
   onInputChange,
   onSubmit,
   onPromptClick,
   setInputValue,
 }: ChatAreaProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  
+  // Handle textarea auto-resize
+  const handleLocalInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onInputChange(e)
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "48px"
+      const scrollHeight = textareaRef.current.scrollHeight
+      textareaRef.current.style.height = `${scrollHeight}px`
+    }
+  }
+
+  // Handle prompt click with focus
+  const handleLocalPromptClick = (prompt: string) => {
+    onPromptClick(prompt)
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }
+
+  // Reset textarea height after submit
+  const handleLocalSubmit = (e: React.FormEvent) => {
+    onSubmit(e)
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "48px"
+    }
+  }
+
   const [selectedModel, setSelectedModel] = useState("Gemini 2.5 Flash")
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
   const [modelSearchQuery, setModelSearchQuery] = useState("")
@@ -156,12 +182,7 @@ export default function ChatArea({
           >
             {messages.length === 0 ? (
               <WelcomeScreen
-                onPromptClick={(prompt) => {
-                  setInputValue(prompt)
-                  if (textareaRef.current) {
-                    textareaRef.current.focus()
-                  }
-                }}
+                onPromptClick={handleLocalPromptClick}
               />
             ) : (
               messages.map((message) => <MessageComponent key={message.id} message={message} />)
@@ -219,7 +240,7 @@ export default function ChatArea({
                     boxShadow:
                       "rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px",
                   }}
-                  onSubmit={onSubmit}
+                  onSubmit={handleLocalSubmit}
                 >
                   <div className="flex flex-grow flex-col">
                     <div></div>
@@ -234,7 +255,7 @@ export default function ChatArea({
                         autoComplete="off"
                         style={{ height: "48px" }}
                         value={inputValue}
-                        onChange={onInputChange}
+                        onChange={handleLocalInputChange}
                         ref={textareaRef}
                       />
                       <div id="chat-input-description" className="sr-only">

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  couchdb-dev:
+    image: couchdb:3.3
+    container_name: couchdb-dev
+    restart: unless-stopped
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin
+    volumes:
+      # - couchdb-dev-data:/opt/couchdb/data
+      - ./docker/couchdb/dev/local.ini:/opt/couchdb/etc/local.d/local.ini
+    profiles:
+      - dev
+    networks:
+      - couchdb-network
+
+  couchdb-prod:
+    image: couchdb:3.3
+    container_name: couchdb-prod
+    restart: unless-stopped
+    ports:
+      - "5985:5984"
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+    volumes:
+      - couchdb-prod-data:/opt/couchdb/data
+      - ./docker/couchdb/prod/local.ini:/opt/couchdb/etc/local.d/local.ini
+    profiles:
+      - prod
+    networks:
+      - couchdb-network
+
+volumes:
+  couchdb-dev-data:
+    driver: local
+  couchdb-prod-data:
+    driver: local
+
+networks:
+  couchdb-network:
+    driver: bridge 

@@ -1,30 +1,81 @@
-# Ai chat website clone
+# T3 ChatCloneathon Project
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+This is my submission for the [T3 ChatCloneathon](https://cloneathon.t3.chat/) competition.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/nickcomuas-projects/v0-ai-chat-website-clone)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/ktcmDuq8pSk)
+## Core Requirements
 
-## Overview
+- [ ] Chat with Various LLMs
+  - [ ] Multiple language model support
+  - [ ] Multiple provider support
+- [ ] Authentication & Sync
+  - [ ] User authentication
+  - [ ] Chat history synchronization
+- [ ] Browser Friendly
+  - [ ] Responsive design
+  - [ ] Cross-browser compatibility
+- [ ] Easy to Try
+  - [ ] Clear setup instructions
+  - [ ] Demo deployment
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Bonus Features
+
+- [ ] Attachment Support
+  - [ ] Image uploads
+  - [ ] PDF uploads
+- [ ] Image Generation Support
+  - [ ] AI-powered image generation
+- [ ] Syntax Highlighting
+  - [ ] Code formatting
+  - [ ] Multiple language support
+- [ ] Resumable Streams
+  - [ ] Continue generation after page refresh
+- [ ] Chat Branching
+  - [ ] Alternative conversation paths
+- [ ] Chat Sharing
+  - [ ] Public share links
+- [ ] Web Search
+  - [ ] Real-time search integration
+- [ ] Bring Your Own Key
+  - [ ] OpenRouter support
+  - [ ] Custom API key configuration
+- [ ] Mobile App
+  - [ ] Responsive mobile design
+  - [ ] Native app (optional)
+
+## Tech Stack
+
+[To be filled with your tech choices]
+
+## Getting Started
+
+### Prerequisites
+
+[To be filled with requirements]
+
+### Installation
+
+[To be filled with setup steps]
+
+## Development
+
+[To be filled with development instructions]
 
 ## Deployment
 
-Your project is live at:
+[To be filled with deployment instructions]
 
-**[https://vercel.com/nickcomuas-projects/v0-ai-chat-website-clone](https://vercel.com/nickcomuas-projects/v0-ai-chat-website-clone)**
+## Competition Rules Compliance
 
-## Build your app
+- [ ] Open Source with permissive license (MIT/Apache/BSD)
+- [ ] GitHub repository public
+- [ ] Team size within limit (≤ 4 people)
+- [ ] Code of Conduct compliant
+- [ ] Content usage acknowledgment
 
-Continue building your app on:
+## Team
 
-**[https://v0.dev/chat/projects/ktcmDuq8pSk](https://v0.dev/chat/projects/ktcmDuq8pSk)**
+[To be filled with team information]
 
-## How It Works
+## License
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+[To be filled with chosen license]
