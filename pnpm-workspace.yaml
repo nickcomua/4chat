@@ -1,3 +1,6 @@
 onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
   - leveldown
+  - msgpackr-extract
   - sharp

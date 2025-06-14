@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   couchdb-dev:
     image: couchdb:3.3
@@ -18,6 +16,31 @@ services:
     networks:
       - couchdb-network
 
+  couchdb-init-dev:
+    # A tiny image that contains curl
+    image: alpine/curl:latest
+    container_name: couchdb-init-dev
+    profiles:
+      - dev
+    networks:
+      - couchdb-network
+    # Pass credentials from the main service
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin
+      - COUCHDB_HOST=couchdb-dev
+    volumes:
+      # Mount the script we just created
+      - ./docker/couchdb/init.sh:/init.sh
+    # This ensures couchdb-dev is started first.
+    # Note: It does NOT wait for it to be ready. Our script handles that.
+    depends_on:
+      - couchdb-dev
+    # The command to run. It executes our script.
+    command: sh -c "apk add --no-cache netcat-openbsd && /init.sh"
+    # Optional: If the script fails, retry a few times.
+    restart: on-failure
+
   couchdb-prod:
     image: couchdb:3.3
     container_name: couchdb-prod
@@ -35,6 +58,30 @@ services:
     networks:
       - couchdb-network
 
+  couchdb-init-prod:
+    # A tiny image that contains curl
+    image: curlimages/curl:latest
+    container_name: couchdb-init-prod
+    profiles:
+      - prod
+    networks:
+      - couchdb-network
+    # Pass credentials from the main service
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-admin}
+    volumes:
+      # Mount the script we just created
+      - ./docker/couchdb/dev/init.sh:/init.sh
+    # This ensures couchdb-dev is started first.
+    # Note: It does NOT wait for it to be ready. Our script handles that.
+    depends_on:
+      - couchdb-dev
+    # The command to run. It executes our script.
+    command: sh -c "apk add --no-cache netcat-openbsd && /init.sh ${COUCHDB_USER} ${COUCHDB_PASSWORD} couchdb-prod"
+    # Optional: If the script fails, retry a few times.
+    restart: on-failure
+
 volumes:
   couchdb-dev-data:
     driver: local
@@ -43,4 +90,4 @@ volumes:
 
 networks:
   couchdb-network:
-    driver: bridge 
+    driver: bridge
