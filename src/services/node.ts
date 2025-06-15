@@ -17,9 +17,9 @@ export const NodeSdkLive = NodeSdk.layer(() => ({
 
 export const runNode = <T>(effect: Effect.Effect<T, any, never>) =>
     effect.pipe(
+        Effect.catchAllCause((e) => Effect.tap(Effect.die(e), () => Effect.logError("runNode error", e))),
         Effect.provide(NodeSdkLive),
         Effect.provide(DevToolsLive),
-        Effect.catchAllCause((e) => Effect.tap(Effect.die(e), () => Effect.logError("runNode error", e))),
         Effect.runPromise);
 
 

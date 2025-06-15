@@ -1,8 +1,8 @@
 
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { Button } from "../../components/ui/button"
-import { signIn } from "../../lib/auth/auth"
+import { Button } from "@/components/ui/button"
+import { signIn } from "@/lib/auth/auth"
 
 // Google logo component
 const GoogleIcon = () => (

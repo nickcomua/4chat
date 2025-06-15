@@ -69,7 +69,6 @@
 ## UI State
 ### Layout
 - [ ] Handle sidebar visibility
-- [ ] Implement mobile/desktop view state
 - [ ] Add theme preferences
 - [ ] Store layout preferences
 

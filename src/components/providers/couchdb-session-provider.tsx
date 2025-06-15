@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useCouchDBSession } from '../../hooks/use-couchdb-session';
+import { useCouchDBSession } from '@/hooks/use-couchdb-session';
 
 interface CouchDBSessionData {
     username: string;

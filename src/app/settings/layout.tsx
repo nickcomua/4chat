@@ -5,9 +5,11 @@ import type React from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { Button } from "../../components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs"
-import { Badge } from "../../components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useFind, usePouch } from "use-pouchdb"
+import { ChatSettings } from "@/types/settings"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const settingsTabs = [
   { value: "account", label: "Account", path: "/settings/account" },
@@ -26,8 +28,35 @@ export default function SettingsLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
+  const db = usePouch<ChatSettings>("profile")
+  const { docs: profiles } = useFind<ChatSettings>({
+    db: "profile",
+    selector: {
+      _id: "0"
+    }
+  })
+  const profile = profiles[0]
+  console.log(profile)
+  // Find the current tab based on pathname with more robust matching
+  const getCurrentTab = () => {
+    // First, try exact match
+    const exactMatch = settingsTabs.find((tab) => pathname === tab.path)
+    if (exactMatch) {
+      return exactMatch.value
+    }
 
-  const currentTab = settingsTabs.find((tab) => pathname === tab.path)?.value || "account"
+    // If no exact match, try to match by checking if pathname starts with the tab path
+    // This handles cases where there might be query parameters or other URL variations
+    const partialMatch = settingsTabs.find((tab) => pathname.startsWith(tab.path))
+    if (partialMatch) {
+      return partialMatch.value
+    }
+
+    // Default to customization (which is the redirect destination from /settings)
+    return "customization"
+  }
+
+  const currentTab = getCurrentTab()
 
   const handleTabChange = (value: string) => {
     const tab = settingsTabs.find((t) => t.value === value)
@@ -108,72 +137,34 @@ export default function SettingsLayout({
         {/* Sidebar */}
         <div className="hidden space-y-8 md:block md:w-1/4">
           {/* Profile Section */}
-          <div className="relative text-center">
+          <div className={`relative text-center ${profile?.visualOptions?.hidePersonalInfo ? "blur-lg" : ""}`}>
             <img
               alt="Profile picture"
               width={160}
               height={160}
               className="mx-auto rounded-full transition-opacity duration-200"
-              src="/placeholder.svg?height=160&width=160"
+              src={profile?.userProfile?.profilePicture ?? "/placeholder.svg?height=160&width=160"}
             />
-            <h1 className="mt-4 text-2xl font-bold transition-opacity duration-200">Mykola Korrnichuk</h1>
+            {profile?.userProfile?.name ?
+              <h1 className="mt-4 text-2xl font-bold transition-opacity duration-200">{profile?.userProfile?.name ?? "First Second"}</h1>
+              : <Skeleton className="mt-4 h-8 w-full" />}
             <div className="relative flex items-center justify-center">
               <p className="break-all text-muted-foreground transition-opacity duration-200"></p>
             </div>
-            <p className="perspective-1000 group relative h-6 cursor-pointer break-all text-muted-foreground">
-              <span className="absolute inset-0 transition-transform duration-300 [backface-visibility:hidden] [transform-style:preserve-3d] truncate group-hover:[transform:rotateX(180deg)]">
-                kolyacom.ya@gmail.com
-              </span>
-              <span className="absolute inset-0 transition-transform duration-300 [backface-visibility:hidden] [transform-style:preserve-3d] [transform:rotateX(180deg)] group-hover:[transform:rotateX(0deg)]">
-                <span className="flex h-6 items-center justify-center gap-2 text-sm">
-                  <span className="flex items-center gap-2">
-                    Copy User ID
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
-                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
-                    </svg>
-                  </span>
+            {profile?.userProfile?.email ?
+              <p className="perspective-1000 group relative h-6 cursor-pointer break-all text-muted-foreground">
+                <span className="absolute inset-0 transition-transform duration-300 [backface-visibility:hidden] [transform-style:preserve-3d] truncate group-hover:[transform:rotateX(180deg)]">
+                  {profile?.userProfile?.email ?? "email@email.com"}
                 </span>
-              </span>
-            </p>
-            <Badge className="mt-2">Pro Plan</Badge>
-          </div>
 
-          {/* Usage Stats */}
-          <div className="space-y-6 rounded-lg bg-card p-4">
-            <div className="flex flex-row justify-between sm:flex-col sm:justify-between lg:flex-row lg:items-center">
-              <span className="text-sm font-semibold">Message Usage</span>
-              <div className="text-xs text-muted-foreground">
-                <p>Resets 06/26/2025</p>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Standard</h3>
-                  <span className="text-sm text-muted-foreground">53/1500</span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                  <div className="h-full rounded-full bg-primary" style={{ width: "3.53333%" }}></div>
-                </div>
-                <p className="text-sm text-muted-foreground">1447 messages remaining</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1">
-                    <h3 className="text-sm font-medium">Premium</h3>
-                    <Button variant="ghost" size="icon" className="h-4 w-4">
+                <span className="absolute inset-0 transition-transform duration-300 [backface-visibility:hidden] [transform-style:preserve-3d] [transform:rotateX(180deg)] group-hover:[transform:rotateX(0deg)]"
+                  onClick={() => {
+                    navigator.clipboard.writeText(profile?.userProfile?.userId ?? "user-id")
+                  }}
+                >
+                  <span className="flex h-6 items-center justify-center gap-2 text-sm">
+                    <span className="flex items-center gap-2">
+                      Copy User ID
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -186,46 +177,29 @@ export default function SettingsLayout({
                         strokeLinejoin="round"
                         className="h-4 w-4 text-muted-foreground"
                       >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M12 16v-4"></path>
-                        <path d="M12 8h.01"></path>
+                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
                       </svg>
-                    </Button>
-                  </div>
-                  <span className="text-sm text-muted-foreground">49/100</span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                  <div className="h-full rounded-full bg-primary" style={{ width: "49%" }}></div>
-                </div>
-                <p className="text-sm text-muted-foreground">51 messages remaining</p>
+                    </span>
+                  </span>
+                </span>
+              </p> : <div className="pt-1 pb-1"><Skeleton className="h-4 ml-3 mr-3" /></div>}
+          </div>
+
+          {/* Usage Stats */}
+          <div className="space-y-6 rounded-lg bg-card p-4">
+            <div className="flex flex-row justify-between sm:flex-col sm:justify-between lg:flex-row lg:items-center">
+              <span className="text-sm font-semibold">Message Usage</span>
+              <div className="text-xs text-muted-foreground">
+                <p>{profile?.usageStats?.used ?? "0"}</p>
               </div>
-            </div>
-            <div className="flex items-center justify-center">
-              <Button className="border-reflect button-reflect bg-[rgb(162,59,103)] hover:bg-[#d56698] text-primary-foreground">
-                Buy more premium credits
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="ml-2 h-3.5 w-3.5"
-                >
-                  <path d="M5 12h14"></path>
-                  <path d="m12 5 7 7-7 7"></path>
-                </svg>
-              </Button>
             </div>
           </div>
 
           {/* Keyboard Shortcuts */}
           <div className="space-y-6 rounded-lg bg-card p-4">
             <span className="text-sm font-semibold">Keyboard Shortcuts</span>
-            <div className="grid gap-4">
+            <div className="grid gap-4 mt-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Search</span>
                 <div className="flex gap-1">

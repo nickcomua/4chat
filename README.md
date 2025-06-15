@@ -38,9 +38,6 @@ This is my submission for the [T3 ChatCloneathon](https://cloneathon.t3.chat/) c
 - [ ] Bring Your Own Key
   - [ ] OpenRouter support
   - [ ] Custom API key configuration
-- [ ] Mobile App
-  - [ ] Responsive mobile design
-  - [ ] Native app (optional)
 
 ## Tech Stack
 

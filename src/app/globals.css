@@ -1,9 +1,6 @@
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 @custom-variant dark (&:is(.dark *));
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {
@@ -167,6 +164,10 @@
 .pt-safe,
 .pt-safe-offset-10 {
   padding-top: max(2.5rem, env(safe-area-inset-top));
+}
+
+.pt-safe-offset-6 {
+  padding-top: calc(env(safe-area-inset-top) + 1.5rem);
 }
 
 .pb-safe-offset-3 {

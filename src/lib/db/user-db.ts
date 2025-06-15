@@ -2,6 +2,8 @@ import PouchDB from "pouchdb";
 import find from "pouchdb-find";
 import { Effect } from "effect";
 import { couchdbUrlBase, getUserDbName } from "./common";
+import { ChatSettings, defaultChatSettings } from "@/types/settings";
+import { Profile } from "next-auth";
 
 PouchDB.plugin(find);
 
@@ -52,7 +54,7 @@ export const getUserDb = (userId: string, dbType: 'chats' | 'messages' | 'profil
 };
 
 // Function to initialize databases for a new user
-export function initializeUserDatabases(userId: string) {
+export function initializeUserDatabases(userId: string, profile: Profile) {
     return Effect.gen(function* () {
         // First create a CouchDB user with a random password
         const genPassword = () => Math.random().toString(36).slice(-8);
@@ -93,6 +95,22 @@ export function initializeUserDatabases(userId: string) {
                 }),
                 catch: error => ({ _tag: "SecuritySetupError" as const, error })
             });
+
+            if (dbType === 'profile') {
+                yield* Effect.tryPromise({
+                    try: () => (db as PouchDB.Database<ChatSettings>).put({
+                        ...defaultChatSettings,
+                        userProfile: {
+                            name: profile.name ?? "",
+                            email: profile.email ?? "",
+                            userId: userId,
+                            profilePicture: profile.picture?.toString() ?? "",
+                            plan: "free"
+                        }
+                    }),
+                    catch: error => ({ _tag: "ChatSettingsSetupError" as const, error })
+                })
+            }
         }
 
         // Return the credentials so they can be stored if needed

@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { PanelLeft } from "lucide-react"
-import Sidebar from "../layout/sidebar"
+import Sidebar from "@/components/layout/sidebar"
 import ChatArea from "./chat-area"
 import type { Message } from "@/types/chat"
 import PouchDB from "pouchdb";

@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 
 import { PouchDBAdapter } from "@auth/pouchdb-adapter";
 import { authConfig } from "./auth.config";
-import { authJsDb, initializeUserDatabases, storeUserCredentials, userDb } from "../db/user-db";
+import { authJsDb, initializeUserDatabases, storeUserCredentials, userDb } from "@/lib/db/user-db";
 import { Effect } from "effect";
 import { NodeSdkLive, runNode } from "@/services/node";
 
@@ -37,7 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return true;
         }
 
-        const couchDbCreds = yield* initializeUserDatabases(userId);
+        const couchDbCreds = yield* initializeUserDatabases(userId, profile ?? {});
         yield* Effect.log("couchDbCreds", couchDbCreds);
         // Store the credentials for later use
         yield* storeUserCredentials(userId, couchDbCreds);

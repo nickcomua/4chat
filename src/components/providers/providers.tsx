@@ -1,8 +1,8 @@
 "use client"
 
 import { ThemeProvider } from "next-themes"
-import { Toaster } from "../ui/sonner"
-import { CouchDBSessionProvider, useCouchDBSessionContext } from "./couchdb-session-provider"
+import { Toaster } from "@/components/ui/sonner"
+import { CouchDBSessionProvider, useCouchDBSessionContext } from "@/components/providers/couchdb-session-provider"
 import { Provider as PouchDBProviderOriginal } from 'use-pouchdb'
 
 // Type assertion to work around React 19 compatibility issue
@@ -21,15 +21,27 @@ interface ProvidersProps {
 }
 
 const DbsProvider = ({ children }: { children: React.ReactNode }) => {
-  const chatsDb = new PouchDB("chats")
-  const messagesDb = new PouchDB("messages")
-  const profileDb = new PouchDB("profile")
+  const chatsDb = new PouchDB("chats",{
+    skip_setup: true
+  })
+  const messagesDb = new PouchDB("messages",{
+    skip_setup: true
+  })
+  const profileDb = new PouchDB("profile",{
+    skip_setup: true
+  })
   const { sessionData } = useCouchDBSessionContext();
   useEffect(() => {
     if (!sessionData) return;
-    const chatsDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'chats')}`)
-    const messagesDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'messages')}`)
-    const profileDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'profile')}`)
+    const chatsDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'chats')}`,{
+      skip_setup: true
+    })
+    const messagesDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'messages')}`,{
+      skip_setup: true
+    })
+    const profileDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'profile')}`,{
+      skip_setup: true
+    })
      const chatsSync = chatsDb.sync(chatsDbRemote, {
       live: true
     }).on('change', function (change) {
@@ -55,6 +67,9 @@ const DbsProvider = ({ children }: { children: React.ReactNode }) => {
       chatsSync.cancel();
       messagesSync.cancel();
       profileSync.cancel();
+      chatsDbRemote.close();
+      messagesDbRemote.close();
+      profileDbRemote.close();
     }
   }, [sessionData])
   return (

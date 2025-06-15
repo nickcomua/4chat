@@ -3,6 +3,10 @@
 import { useState } from "react"
 import type { Message } from "@/types/chat"
 import { RefreshCcw, SquarePen, Copy, Check, ArrowUpRight } from "lucide-react"
+import { toast } from "sonner"
+import { parseMarkdown } from "@/services/marked"
+import { Effect } from "effect"
+import DOMPurify from "isomorphic-dompurify"
 
 interface MessageProps {
   message: Message
@@ -14,6 +18,7 @@ export default function MessageComponent({ message }: MessageProps) {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(message.content)
     setIsCopied(true)
+    toast.success("Copied to clipboard")
     setTimeout(() => setIsCopied(false), 2000)
   }
 
@@ -82,7 +87,11 @@ export default function MessageComponent({ message }: MessageProps) {
             className="prose prose-pink max-w-none dark:prose-invert prose-pre:m-0 prose-pre:bg-transparent prose-pre:p-0"
           >
             <span className="sr-only">Assistant Reply: </span>
-            <p>{message.content}</p>
+            <p dangerouslySetInnerHTML={{ 
+              __html: DOMPurify.sanitize(
+                parseMarkdown(message.content).pipe(Effect.runSync)
+              )
+            }} />
           </div>
           <div className="absolute left-0 -ml-0.5 mt-2 flex w-full flex-row justify-start gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-focus:opacity-100">
             <div className="flex w-full flex-row justify-between gap-1 sm:w-auto">

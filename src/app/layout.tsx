@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-import { Providers } from "../components/providers/providers"
-import { auth } from "../lib/auth/auth"
+import { Providers } from "@/components/providers/providers"
 
 const geist = Geist({
   subsets: ["latin"],
