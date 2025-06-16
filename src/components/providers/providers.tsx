@@ -21,7 +21,8 @@ interface ProvidersProps {
 }
 
 const DbsProvider = ({ children }: { children: React.ReactNode }) => {
-  const chatsDb = new PouchDB("chats",{
+  // @todo: add local db to pouchdb
+  const chatsDb = new PouchDB("chats",{ 
     skip_setup: true
   })
   const messagesDb = new PouchDB("messages",{
@@ -30,6 +31,10 @@ const DbsProvider = ({ children }: { children: React.ReactNode }) => {
   const profileDb = new PouchDB("profile",{
     skip_setup: true
   })
+
+  // const localDb = new PouchDB("local",{
+  //   skip_setup: true
+  // })
   const { sessionData } = useCouchDBSessionContext();
   useEffect(() => {
     if (!sessionData) return;
@@ -76,7 +81,7 @@ const DbsProvider = ({ children }: { children: React.ReactNode }) => {
     <PouchDBProvider pouchdb={chatsDb}>
       <PouchDBProvider pouchdb={messagesDb}>
         <PouchDBProvider pouchdb={profileDb}>
-          {children as any}
+            {children as any}
         </PouchDBProvider>
       </PouchDBProvider>
     </PouchDBProvider>

@@ -4,7 +4,7 @@ import { PouchDBAdapter } from "@auth/pouchdb-adapter";
 import { authConfig } from "./auth.config";
 import { authJsDb, initializeUserDatabases, storeUserCredentials, userDb } from "@/lib/db/user-db";
 import { Effect } from "effect";
-import { NodeSdkLive, runNode } from "@/services/node";
+import { NodeSdkLive, runNode } from "@/lib/services/node";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useCouchDBSession } from '@/hooks/use-couchdb-session';
+import { useCouchDBSession } from '@/lib/hooks/use-couchdb-session';
 
 interface CouchDBSessionData {
     username: string;
@@ -32,7 +32,6 @@ export const CouchDBSessionProvider: React.FC<CouchDBSessionProviderProps> = ({
     refreshIntervalMs = 300000 // 5 minutes
 }) => {
     const sessionData = useCouchDBSession(autoRefresh, refreshIntervalMs);
-    console.log('sessionData', sessionData);
     return (
         <CouchDBSessionContext.Provider value={sessionData}>
             {children}

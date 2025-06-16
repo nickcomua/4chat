@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useFind, usePouch } from "use-pouchdb"
-import { ChatSettings } from "@/types/settings"
+import { ChatSettings } from "@/lib/types/settings"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const settingsTabs = [
@@ -36,7 +36,6 @@ export default function SettingsLayout({
     }
   })
   const profile = profiles[0]
-  console.log(profile)
   // Find the current tab based on pathname with more robust matching
   const getCurrentTab = () => {
     // First, try exact match

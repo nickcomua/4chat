@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { FileText, Image, File, Archive, Trash2, Upload, Settings } from "lucide-react"
 import { useFind, usePouch } from "use-pouchdb"
-import { ChatSettings } from "@/types/settings"
+import { ChatSettings } from "@/lib/types/settings"
 
 interface Attachment {
   id: string

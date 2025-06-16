@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Key, Eye, EyeOff, ExternalLink, Loader2 } from "lucide-react"
 import { useFind, usePouch } from "use-pouchdb"
-import { ChatSettings } from "@/types/settings"
+import { ChatSettings } from "@/lib/types/settings"
 import { toast } from "sonner"
 
 interface ApiKeyProvider {

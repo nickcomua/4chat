@@ -18,7 +18,7 @@ import {
   Twitter
 } from "lucide-react"
 import { useFind, usePouch } from "use-pouchdb"
-import { ChatSettings } from "@/types/settings"
+import { ChatSettings } from "@/lib/types/settings"
 
 // Discord icon component
 const Discord = () => (

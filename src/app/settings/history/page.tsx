@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Upload, Download, Trash2, Trash, Settings } from "lucide-react"
 import { useFind, usePouch } from "use-pouchdb"
-import { ChatSettings } from "@/types/settings"
+import { ChatSettings } from "@/lib/types/settings"
 
 // Sample chat history data
 const chatHistory = [

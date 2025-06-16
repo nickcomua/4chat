@@ -3,6 +3,8 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signIn } from "@/lib/auth/auth"
+import { auth } from "@/lib/auth/auth"
+import { redirect } from "next/navigation"
 
 // Google logo component
 const GoogleIcon = () => (
@@ -25,12 +27,15 @@ const GoogleIcon = () => (
   </svg>
 )
 
-export default function AuthPage() {
+export default async function AuthPage() {
+  const currentAuth = await auth()
+  if (currentAuth?.user?.id) {
+    redirect("/")
+  }
   async function signInWithGoogle() {
     "use server"
     await signIn("google", { redirectTo: "/" })
   }
-
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-8">
       {/* Background */}

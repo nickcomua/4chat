@@ -1,181 +1,122 @@
 "use client"
 
 import React, { useState } from "react"
-import {
-  ChevronDown,
-  Search,
-  Pin,
-  Eye,
-  FileText,
-  Brain,
-  FlaskConical,
-  Gem,
-  GlobeIcon,
-  Filter,
-  List,
-} from "lucide-react"
+import { ChevronDown, Search, Star, Info, ImagePlus, Gem, Filter } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { useFind, usePouch } from "use-pouchdb"
+import { ChatSettings } from "@/lib/types/settings"
+import { features, initialModels } from "@/lib/config/models"
 
-interface ModelSelectorProps {
-  selectedModel: string
-  onModelChange: (model: string) => void
-}
-
-export default function ModelSelector({ selectedModel, onModelChange }: ModelSelectorProps) {
+export default function ModelSelector() {
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false)
   const [modelSearchQuery, setModelSearchQuery] = useState("")
-  const [modelSelectionView, setModelSelectionView] = useState<"favorites" | "all">("favorites")
-  const [activeFilters, setActiveFilters] = useState<string[]>([])
-  const [showOnlyFreeModels, setShowOnlyFreeModels] = useState(false)
+  const profileDb = usePouch("profile")
+  const { docs: profiles } = useFind<ChatSettings>({
+    db: "profile",
+    selector: {
+      _id: "0"
+    }
+  })
+  const profile = profiles[0]
+  const selectedModel = profile?.modelSettings?.preferredModel ?? "gemini-2-0-flash"
+  const onModelChange = (modelId: string) => {
+    profileDb.put({
+      ...profile,
+      _id: "0",
+      modelSettings: { ...profile?.modelSettings, 
+        preferredModel: modelId }
+    })
+  }
+  const favoriteModels = profile?.modelSettings?.favoriteModels || []
 
-  const allFeatures = ["Fast", "Vision", "Search", "PDFs", "Reasoning", "Effort Control"]
-  const featureIcons: { [key: string]: React.ElementType } = {
-    Fast: Brain, // Using Brain as placeholder, adjust as needed
-    Vision: Eye,
-    Search: GlobeIcon,
-    PDFs: FileText,
-    Reasoning: Brain,
-    "Effort Control": Brain, // Using Brain as placeholder
+  const getFilteredModels = () => {
+    if (!profile?.modelSettings?.favoriteModels) return []
+    return favoriteModels.filter((modelId) => {
+      if (!modelSearchQuery) return true
+      return modelId.toLowerCase().includes(modelSearchQuery.toLowerCase())
+    })
   }
 
-  const favoriteModels = [
-    {
-      name: "Gemini 2.5 Flash",
-      provider: "Google",
-      features: ["Vision", "Search", "PDFs"],
-    },
-    {
-      name: "Gemini 2.5 Pro",
-      provider: "Google",
-      features: ["Vision", "Search", "PDFs", "Reasoning"],
-      experimental: true,
-    },
-    {
-      name: "GPT ImageGen",
-      provider: "OpenAI",
-      features: ["Vision"],
-      premium: true,
-    },
-    { name: "o4-mini", provider: "OpenAI", features: ["Vision", "Reasoning"] },
-    {
-      name: "Claude 4 Sonnet (Reasoning)",
-      provider: "Anthropic",
-      features: ["Vision", "PDFs", "Reasoning"],
-      premium: true,
-    },
-    {
-      name: "DeepSeek R1 (Llama Distilled)",
-      provider: "DeepSeek",
-      features: ["Reasoning"],
-    },
-  ]
+  const renderModelItem = (modelId: string) => {
+    const model = initialModels.find(m => m.id === modelId)
+    const modelFeatures = model?.features || []
+    const modelName = model?.name || modelId
+    const provider = model?.provider || ""
+    const Icon = model?.icon
 
-  const allModels = [
-    ...favoriteModels,
-    {
-      name: "Gemini 2.0 Flash",
-      provider: "Google",
-      features: ["Vision", "Search", "PDFs"],
-    },
-    { name: "GPT-4o", provider: "OpenAI", features: ["Vision"] },
-    {
-      name: "Claude 3.5 Sonnet",
-      provider: "Anthropic",
-      features: ["Vision", "PDFs"],
-      premium: true,
-    },
-  ]
-
-  const getFilteredModels = (models: typeof favoriteModels) => {
-    return models
-      .filter((model) => {
-        if (!modelSearchQuery) return true
-        return (
-          model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
-          model.provider.toLowerCase().includes(modelSearchQuery.toLowerCase())
-        )
-      })
-      .filter((model) => {
-        if (activeFilters.length === 0) return true
-        return activeFilters.every((filter) => model.features.includes(filter))
-      })
-      .filter((model) => {
-        if (!showOnlyFreeModels) return true
-        return !model.premium && !model.experimental
-      })
-  }
-
-  const renderModelCard = (model: typeof favoriteModels[0]) => (
-    <div key={model.name} className="group relative">
-      <button
-        className="group relative flex h-[148px] w-[108px] cursor-pointer flex-col items-start gap-0.5 overflow-hidden rounded-xl border border-chat-border/50 bg-sidebar/20 px-1 py-3 text-color-heading hover:bg-accent/30 hover:text-color-heading"
+    return (
+      <div
+        key={modelId}
+        role="menuitem"
+        className="relative cursor-default select-none rounded-sm text-sm outline-none transition-colors focus:bg-accent/30 focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0 group flex flex-col items-start gap-1 p-3"
+        tabIndex={-1}
+        data-orientation="vertical"
+        data-radix-collection-item=""
         onClick={() => {
-          onModelChange(model.name)
+          onModelChange(modelId)
           setIsModelDropdownOpen(false)
         }}
       >
-        <div className="flex w-full flex-col items-center justify-center gap-1 font-medium transition-colors">
-          <div className="size-7 text-[--model-primary] bg-muted rounded flex items-center justify-center">
-            {model.provider.charAt(0)}
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-2 pr-2 font-medium text-muted-foreground transition-colors">
+            {Icon && <div className="h-4 w-4">
+              <Icon />
+            </div>}
+            <span className="w-fit text-nowrap">{modelName}</span>
+            <button className="p-1.5" data-state="closed">
+              <Info className="size-3 text-color-heading" />
+            </button>
           </div>
-          <div className="w-full text-center text-[--model-primary]">
-            <div className="text-base font-semibold">{model.name.split(" ")[0]}</div>
-            <div className="-mt-0.5 text-sm font-semibold">
-              {model.name.split(" ").slice(1).join(" ")}
-            </div>
+          <div className="flex items-center gap-2">
+            {modelFeatures.map((featureKey) => {
+              const feature = features[featureKey]
+              if (!feature) return null
+
+              const FeatureIcon = feature.icon
+              return (
+                <div
+                  key={featureKey}
+                  className="relative flex h-6 w-6 items-center justify-center overflow-hidden rounded-md text-[--color] dark:text-[--color-dark]"
+                  data-state="closed"
+                  style={{
+                    "--color-dark": feature.darkColor,
+                    "--color": feature.color
+                  } as React.CSSProperties}
+                >
+                  <div className="absolute inset-0 bg-current opacity-20 dark:opacity-15"></div>
+                  <FeatureIcon className="h-4 w-4" />
+                </div>
+              )
+            })}
           </div>
-          {model.experimental && (
-            <div className="absolute right-1.5 top-1.5 text-[--model-muted] opacity-80">
-              <FlaskConical className="size-4" />
-            </div>
-          )}
-          {model.premium && (
-            <div className="absolute right-1.5 top-1.5 text-[--model-muted] opacity-80">
-              <Gem className="size-4" />
-            </div>
-          )}
         </div>
-        <div className="absolute inset-x-0 bottom-3 flex w-full items-center justify-center gap-2">
-          {model.features.map((feature) => (
-            <div
-              key={feature}
-              className="relative flex h-6 w-6 items-center justify-center overflow-hidden rounded-md text-[--color] dark:text-[--color-dark]"
-            >
-              <div className="absolute inset-0 bg-current opacity-20 dark:opacity-15"></div>
-              {feature === "Vision" && <Eye className="h-4 w-4" />}
-              {feature === "Search" && <GlobeIcon className="h-4 w-4" />}
-              {feature === "PDFs" && <FileText className="h-4 w-4" />}
-              {feature === "Reasoning" && <Brain className="h-4 w-4" />}
-            </div>
-          ))}
-        </div>
-      </button>
-    </div>
-  )
+      </div>
+    )
+  }
 
   return (
     <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
       <DropdownMenuTrigger asChild>
         <button
-          className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-8 rounded-md text-xs relative gap-2 px-2 py-1.5 -mb-2 text-muted-foreground"
+          className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-8 rounded-md text-xs relative gap-2 px-2 text-muted-foreground"
           type="button"
         >
-          <div className="text-left text-sm font-medium">{selectedModel}</div>
+          <div className="text-left text-sm font-medium">{initialModels.find(m => m.id === selectedModel)?.name}</div>
           <ChevronDown className="right-0 size-4" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="z-50 min-w-[8rem] bg-popover text-popover-foreground shadow-md !outline !outline-1 !outline-chat-border/20 dark:!outline-white/5 relative overflow-hidden rounded-lg !border-none p-0 pb-11 pt-10 max-w-[calc(100vw-2rem)] transition-[height,width] ease-snappy max-sm:mx-4 sm:w-[640px] max-h-[calc(100vh-80px)] min-h-[300px]"
+        style={{
+          height: Math.min(getFilteredModels().length * 40 + 36 + 46, 1448),
+        }}
+        className="z-50 min-w-[8rem] bg-popover text-popover-foreground shadow-md !outline !outline-1 !outline-chat-border/20 dark:!outline-white/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 transform-origin relative overflow-hidden rounded-lg !border-none p-0 pt-10 max-w-[calc(100vw-2rem)] transition-[height,width] ease-snappy max-sm:mx-4 sm:w-[420px] sm:rounded-lg max-h-[calc(100vh-80px)]"
         side="top"
         align="start"
       >
-        {/* Search Header */}
         <div className="fixed inset-x-4 top-0 rounded-t-lg bg-popover px-3.5 pt-0.5 sm:inset-x-0">
           <div className="flex items-center">
             <Search className="ml-px mr-3 !size-4 text-muted-foreground/75" />
@@ -191,54 +132,22 @@ export default function ModelSelector({ selectedModel, onModelChange }: ModelSel
           <div className="border-b border-chat-border px-3"></div>
         </div>
 
-        {/* Models Grid */}
-        <div className="max-h-full overflow-y-scroll px-1.5 sm:w-[640px] scroll-shadow">
-          <div className="flex w-full flex-wrap justify-start gap-3.5 pb-4 pl-3 pr-2 pt-2.5">
-            {modelSelectionView === "favorites" && (
-              <>
-                <div className="-mb-2 ml-0 flex w-full select-none items-center justify-start gap-1.5 text-color-heading">
-                  <Pin className="mt-px size-4" />
-                  Favorites
-                </div>
-                {getFilteredModels(favoriteModels).map(renderModelCard)}
-              </>
-            )}
-            {modelSelectionView === "all" && (
-              <>
-                <div className="-mb-2 ml-2 mt-1 w-full select-none text-color-heading">All Models</div>
-                {getFilteredModels(allModels).map(renderModelCard)}
-              </>
-            )}
-          </div>
+        <div className="max-h-full overflow-y-scroll px-1.5 scroll-shadow">
+          {getFilteredModels().map(renderModelItem)}
         </div>
 
-        {/* Footer controls */}
-        <div className="fixed inset-x-0 bottom-0 border-t border-chat-border bg-popover p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button
-                className={`text-xs px-2 py-1 rounded ${
-                  modelSelectionView === "favorites"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => setModelSelectionView("favorites")}
-              >
-                Favorites
-              </button>
-              <button
-                className={`text-xs px-2 py-1 rounded ${
-                  modelSelectionView === "all"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => setModelSelectionView("all")}
-              >
-                All Models
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* <div className="fixed inset-x-4 bottom-0 flex items-center justify-between rounded-b-lg bg-popover pb-1 pl-1 pr-2.5 pt-1.5 sm:inset-x-0">
+          <div className="absolute inset-x-3 top-0 border-b border-chat-border"></div>
+          <button className="justify-center whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-9 px-4 py-2 flex items-center gap-2 pl-2 text-sm text-muted-foreground">
+            <ChevronDown className="h-4 w-4" /> Show all
+          </button> */}
+        {/* <button @todo
+            className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 h-8 rounded-md text-xs relative gap-2 px-2 text-muted-foreground"
+            type="button"
+          >
+            <Filter className="h-4 w-4" />
+          </button> */}
+        {/* </div> */}
       </DropdownMenuContent>
     </DropdownMenu>
   )

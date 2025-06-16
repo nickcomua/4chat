@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useFind, usePouch } from "use-pouchdb"
-import { ChatSettings } from "@/types/settings"
+import { ChatSettings } from "@/lib/types/settings"
 import { Schema } from "effect"
 
 export default function CustomizationTab() {
@@ -225,7 +225,7 @@ export default function CustomizationTab() {
               onClick={savePreferences}
               disabled={isSaving || (!name && !occupation && !additionalInfo) || preferencesEquivalence({...profile,lastUpdated: ""}, {...updatedProfile,lastUpdated: "" })}
             >
-              "Save Preferences"
+              Save Preferences
             </Button>
           </div>
         </div>
@@ -302,7 +302,7 @@ export default function CustomizationTab() {
           {/* Save Visual Options */}
           <div className="flex justify-end">
             <Button onClick={savePreferences} disabled={isSaving || preferencesEquivalence({...profile,lastUpdated: ""}, {...updatedProfile,lastUpdated: "" })}>
-              "Save Visual Options"
+              Save Visual Options
             </Button>
           </div>
 

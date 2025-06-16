@@ -5,7 +5,7 @@ import { Rocket, Sparkles, Headset, Info, ArrowRight, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useFind, usePouch } from "use-pouchdb"
-import { ChatSettings } from "@/types/settings"
+import { ChatSettings } from "@/lib/types/settings"
 
 export default function AccountPage() {
   const [copied, setCopied] = useState(false)

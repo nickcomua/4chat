@@ -2,7 +2,7 @@ import PouchDB from "pouchdb";
 import find from "pouchdb-find";
 import { Effect } from "effect";
 import { couchdbUrlBase, getUserDbName } from "./common";
-import { ChatSettings, defaultChatSettings } from "@/types/settings";
+import { ChatSettings, defaultChatSettings } from "@/lib/types/settings";
 import { Profile } from "next-auth";
 
 PouchDB.plugin(find);

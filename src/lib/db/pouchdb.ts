@@ -2,20 +2,20 @@ import { Effect, Schema } from "effect";
 import PouchDB from "pouchdb";
 
 // Define error types for different PouchDB put failures
-class PouchDBPutError extends Schema.TaggedError<PouchDBPutError>()("PouchDBPutError", {
+export class PouchDBPutError extends Schema.TaggedError<PouchDBPutError>()("PouchDBPutError", {
     message: Schema.String,
     status: Schema.optional(Schema.Number),
     docId: Schema.optional(Schema.String),
     docRev: Schema.optional(Schema.String),
 }) { }
 
-class DocumentConflictError extends Schema.TaggedError<DocumentConflictError>()("DocumentConflictError", {
+export class DocumentConflictError extends Schema.TaggedError<DocumentConflictError>()("DocumentConflictError", {
     message: Schema.String,
     docId: Schema.String,
     docRev: Schema.String,
 }) { }
 
-class InvalidDocumentError extends Schema.TaggedError<InvalidDocumentError>()("InvalidDocumentError", {
+export class InvalidDocumentError extends Schema.TaggedError<InvalidDocumentError>()("InvalidDocumentError", {
     message: Schema.String,
     docId: Schema.optional(Schema.String),
 }) { }
@@ -29,6 +29,8 @@ const PutResponseSchema = Schema.Struct({
 
 type PutResponse = typeof PutResponseSchema.Type;
 
+
+
 /**
  * Creates an Effect that performs a put operation on a PouchDB database.
  * 
@@ -37,8 +39,8 @@ type PutResponse = typeof PutResponseSchema.Type;
  * @returns An Effect that resolves to the put response or fails with appropriate error
  */
 export const putDocument = <T extends { _id: string; _rev?: string }>(
-    db: PouchDB.Database,
-    doc: T
+    db: PouchDB.Database<T>,
+    doc: T & { _id: string; _rev?: string }
 ): Effect.Effect<PutResponse, PouchDBPutError | DocumentConflictError | InvalidDocumentError> => {
     return Effect.tryPromise({
         try: () => db.put(doc),

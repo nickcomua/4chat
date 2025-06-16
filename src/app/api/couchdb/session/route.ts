@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Effect } from 'effect';
 import { generateCouchDBSession, validateCouchDBSession, deleteCouchDBSession } from '@/lib/db/couchdb-session';
 import { auth } from '@/lib/auth/auth';
-import { NodeSdkLive, runNode } from '@/services/node';
+import { NodeSdkLive, runNode } from '@/lib/services/node';
 
 // POST - Create new CouchDB session
 export function POST(request: NextRequest) {
