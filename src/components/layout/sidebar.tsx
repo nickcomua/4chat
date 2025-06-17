@@ -9,8 +9,16 @@ import { usePouch, useAllDocs, useFind } from "use-pouchdb"
 import { ChatSettings } from "@/lib/types/settings"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
-
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ChatGroup {
   label: string
@@ -26,65 +34,92 @@ interface ChatItemProps {
 }
 
 function ChatItem({ chat, isActive, onPin, onDelete }: ChatItemProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
   return (
-    <span data-state="closed" style={{ userSelect: "none" }}>
-      <li data-sidebar="menu-item" className="group/menu-item relative">
-        <Link
-          className={`group/link relative flex h-9 w-full items-center overflow-hidden rounded-lg px-2 py-1 text-sm outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring hover:focus-visible:bg-sidebar-accent ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
-          href={`/chat/${chat._id}`}
-        >
-          <div className="relative flex w-full items-center">
-            <button data-state="closed" className="w-full">
-              <div className="relative w-full flex items-center">
-                {chat.pinned && (
-                  <Pin className="size-3 mr-1 text-muted-foreground" />
-                )}
-                <input
-                  aria-label="Thread title"
-                  aria-describedby="thread-title-hint"
-                  aria-readonly="true"
-                  readOnly
+    <>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this chat? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                onDelete?.()
+                setShowDeleteDialog(false)
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <span data-state="closed" style={{ userSelect: "none" }}>
+        <li data-sidebar="menu-item" className="group/menu-item relative">
+          <Link
+            className={`group/link relative flex h-9 w-full items-center overflow-hidden rounded-lg px-2 py-1 text-sm outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
+            href={`/chat/${chat._id}`}
+          >
+            <div className="relative flex w-full items-center">
+              <button data-state="closed" className="w-full">
+                <div className="relative w-full flex items-center">
+                  {chat.pinned && (
+                    <Pin className="size-3 mr-1 text-muted-foreground" />
+                  )}
+                  <input
+                    aria-label="Thread title"
+                    aria-describedby="thread-title-hint"
+                    aria-readonly="true"
+                    readOnly
+                    tabIndex={-1}
+                    className="hover:truncate-none h-full w-full rounded bg-transparent px-1 py-1 text-sm text-muted-foreground outline-none pointer-events-none cursor-pointer overflow-hidden truncate"
+                    title={chat.name}
+                    type="text"
+                    value={chat.name}
+                  />
+                </div>
+              </button>
+              <div className="pointer-events-auto absolute -right-1 bottom-0 top-0 z-50 flex translate-x-full items-center justify-end text-muted-foreground transition-transform group-hover/link:translate-x-0 group-hover/link:bg-sidebar-accent">
+                <div className="pointer-events-none absolute bottom-0 right-[100%] top-0 h-12 w-8 bg-gradient-to-l from-sidebar-accent to-transparent opacity-0 group-hover/link:opacity-100"></div>
+                <button
+                  className={`rounded-md p-1.5 hover:bg-muted/40 ${chat.pinned ? 'text-primary' : ''}`}
                   tabIndex={-1}
-                  className="hover:truncate-none h-full w-full rounded bg-transparent px-1 py-1 text-sm text-muted-foreground outline-none pointer-events-none cursor-pointer overflow-hidden truncate"
-                  title={chat.name}
-                  type="text"
-                  value={chat.name}
-                />
+                  data-action="pin-thread"
+                  aria-label={chat.pinned ? "Unpin thread" : "Pin thread"}
+                  data-state="closed"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onPin?.()
+                  }}
+                >
+                  <Pin className="size-4" />
+                </button>
+                <button
+                  className="rounded-md p-1.5 hover:bg-destructive/50 hover:text-destructive-foreground"
+                  tabIndex={-1}
+                  data-action="thread-delete"
+                  aria-label="Delete thread"
+                  data-state="closed"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowDeleteDialog(true)
+                  }}
+                >
+                  <X className="size-4" />
+                </button>
               </div>
-            </button>
-            <div className="pointer-events-auto absolute -right-1 bottom-0 top-0 z-50 flex translate-x-full items-center justify-end text-muted-foreground transition-transform group-hover/link:translate-x-0 group-hover/link:bg-sidebar-accent">
-              <div className="pointer-events-none absolute bottom-0 right-[100%] top-0 h-12 w-8 bg-gradient-to-l from-sidebar-accent to-transparent opacity-0 group-hover/link:opacity-100"></div>
-              <button
-                className={`rounded-md p-1.5 hover:bg-muted/40 ${chat.pinned ? 'text-primary' : ''}`}
-                tabIndex={-1}
-                data-action="pin-thread"
-                aria-label={chat.pinned ? "Unpin thread" : "Pin thread"}
-                data-state="closed"
-                onClick={(e) => {
-                  e.preventDefault()
-                  onPin?.()
-                }}
-              >
-                <Pin className="size-4" />
-              </button>
-              <button
-                className="rounded-md p-1.5 hover:bg-destructive/50 hover:text-destructive-foreground"
-                tabIndex={-1}
-                data-action="thread-delete"
-                aria-label="Delete thread"
-                data-state="closed"
-                onClick={(e) => {
-                  e.preventDefault()
-                  onDelete?.()
-                }}
-              >
-                <X className="size-4" />
-              </button>
             </div>
-          </div>
-        </Link>
-      </li>
-    </span>
+          </Link>
+        </li>
+      </span>
+    </>
   )
 }
 
@@ -94,9 +129,14 @@ export default function Sidebar() {
   const messagesDb: PouchDB.Database<ChatMessage> = usePouch("messages")
   const { id: chatId }: { id: string | undefined } = useParams()
   const { docs: chats } = useFind<Chat>({
-    db: "chats", selector: {
-      _id: { $gte: null }
-    }
+    db: "chats",
+    selector: {
+      createdAt: { $gte: null }
+    },
+    index: {
+      fields: ["createdAt"]
+    },
+    sort: ["createdAt"]
   })
   const router = useRouter()
   const { docs: profiles } = useFind<ChatSettings>({
@@ -253,12 +293,14 @@ export default function Sidebar() {
                         onDelete={async () => {
                           try {
                             await chatsDb.remove(chat)
-                            await messagesDb.find({
-                              selector: { chatId: chatId ?? "", index: { $gt: null } },
-                              sort: ["chatId", "index"],
-                            }).then(docs =>
-                              Promise.all(docs.docs.map(doc => messagesDb.remove(doc)))
-                            )
+                            const ids = await messagesDb.find({
+                              selector: { _id: { $gte: `${chat._id}_`, $lte: `${chat._id}_\uffff` } },
+                            })
+                            await messagesDb.bulkDocs(ids.docs.map(doc => ({
+                              _id: doc._id,
+                              _rev: doc._rev,
+                              _deleted: true
+                            }) as unknown as ChatMessage))
                             if (chatId === chat._id) {
                               router.push("/")
                             }

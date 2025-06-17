@@ -71,7 +71,7 @@ export const useCouchDBSession = (
     // Function to validate existing CouchDB session
     const validateSession = async (): Promise<boolean> => {
         try {
-            const response = await fetch('/api/_couchdb/_session', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_COUCHDB_URL}/_session`, {
                 method: 'GET',
                 credentials: "same-origin",
             });

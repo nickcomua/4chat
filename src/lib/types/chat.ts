@@ -5,32 +5,22 @@ import { Schema } from "effect"
 export class ChatUserMessage extends Schema.Class<ChatUserMessage>("ChatUserMessage")({
   _id: Schema.String,
   _rev: Schema.optional(Schema.String),
-  type: Schema.Literal("user"),
-  chatId: Schema.String,
+  type: Schema.Literal("ChatUserMessage"),
   createdAt: Schema.Number,
-  index: Schema.Number,
   ai: UserMessage
 }) { }
 
 export class ChatAssistantMessage extends Schema.Class<ChatAssistantMessage>("ChatAssistantMessage")({
   _id: Schema.String,
   _rev: Schema.optional(Schema.String),
-  type: Schema.Literal("assistant"),
-  startedAt: Schema.Number,
-  endedAt: Schema.Number,
-  chatId: Schema.String,
-  index: Schema.Number,
-  status: Schema.Literal("success", "error"),
+  type: Schema.Literal("ChatAssistantMessage"),
   ai: AiResponse
 }) { }
 
 export class ChatAssistantMessageChunk extends Schema.Class<ChatAssistantMessageChunk>("ChatAssistantMessageChunk")({
   _id: Schema.String,
   _rev: Schema.optional(Schema.String),
-  type: Schema.Literal("chunk"),
-  chatId: Schema.String,
-  createdAt: Schema.Number,
-  index: Schema.Number,
+  type: Schema.Literal("ChatAssistantMessageChunk"),
   ai: AiResponse
 }) { }
 

@@ -7,6 +7,7 @@ export class PouchDBPutError extends Schema.TaggedError<PouchDBPutError>()("Pouc
     status: Schema.optional(Schema.Number),
     docId: Schema.optional(Schema.String),
     docRev: Schema.optional(Schema.String),
+    error: Schema.optional(Schema.String),
 }) { }
 
 export class DocumentConflictError extends Schema.TaggedError<DocumentConflictError>()("DocumentConflictError", {
@@ -53,7 +54,8 @@ export const putDocument = <T extends { _id: string; _rev?: string }>(
             if (!isPouchError(error)) {
                 return new PouchDBPutError({
                     message: "Unknown error occurred during put operation",
-                    docId: doc._id
+                    docId: doc._id,
+                    error: String(error)
                 });
             }
 

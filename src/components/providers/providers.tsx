@@ -50,21 +50,21 @@ const DbsProvider = ({ children }: { children: React.ReactNode }) => {
      const chatsSync = chatsDb.sync(chatsDbRemote, {
       live: true
     }).on('change', function (change) {
-      console.log("change", change)
+      // console.log("change", change)
     }).on('error', function (err) {
       console.log("error", err)
     });
     const messagesSync = messagesDb.sync(messagesDbRemote, {
       live: true
     }).on('change', function (change) {
-      console.log("change", change)
+      // console.log("change", change)
     }).on('error', function (err) {
       console.log("error", err)
     });
     const profileSync = profileDb.sync(profileDbRemote, {
       live: true
     }).on('change', function (change) {
-      console.log("change", change)
+      // console.log("change", change)
     }).on('error', function (err) {
       console.log("error", err)
     });

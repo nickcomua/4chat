@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { ArrowUp } from "lucide-react"
 import ModelSelector from "./model-selector"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 interface MessageInputProps {
   inputValue: string
   onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onSubmit: (e: React.FormEvent) => void
+  onSubmit: (e: React.FormEvent) => boolean
 }
 
 export default function MessageInput({
@@ -18,19 +18,24 @@ export default function MessageInput({
 }: MessageInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }, [])
   // Handle textarea auto-resize
   const handleLocalInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onInputChange(e)
     if (textareaRef.current) {
       textareaRef.current.style.height = "48px"
-      const scrollHeight = textareaRef.current.scrollHeight
+      const scrollHeight = Math.min(textareaRef.current.scrollHeight, 240)
       textareaRef.current.style.height = `${scrollHeight}px`
     }
   }
 
   // Reset textarea height after submit
   const handleLocalSubmit = (e: React.FormEvent) => {
-    onSubmit(e)
+    if (!onSubmit(e)) return
     if (textareaRef.current) {
       textareaRef.current.style.height = "48px"
     }

@@ -200,6 +200,9 @@ importers:
       marked-katex-extension:
         specifier: ^5.1.4
         version: 5.1.4(katex@0.16.22)(marked@15.0.12)
+      marked-react:
+        specifier: ^3.0.0
+        version: 3.0.0(react@19.0.0)
       next:
         specifier: 15.2.4
         version: 15.2.4(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@19.1.0-rc.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.89.2)
@@ -2425,6 +2428,11 @@ packages:
     peerDependencies:
       katex: '>=0.16 <0.17'
       marked: '>=4 <16'
+
+  marked-react@3.0.0:
+    resolution: {integrity: sha512-We5IPtdfarVIqypy4LmQ3O8xe9Hk8EBNs4MRUYg5077mbD7GJ+rmV9XAPJ0XK8LfQkCOwGv4I7niXWLXWywyoQ==}
+    peerDependencies:
+      react: ^16.8.0 || >=17.0.0
 
   marked@15.0.12:
     resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
@@ -5177,6 +5185,11 @@ snapshots:
     dependencies:
       katex: 0.16.22
       marked: 15.0.12
+
+  marked-react@3.0.0(react@19.0.0):
+    dependencies:
+      marked: 15.0.12
+      react: 19.0.0
 
   marked@15.0.12: {}
 
