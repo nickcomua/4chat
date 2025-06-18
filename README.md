@@ -62,6 +62,7 @@ COUCHDB_USER=
 COUCHDB_PASSWORD=
 
 # Public CouchDB URL (accessible from client-side)
+DOMAIN=localhost
 NEXT_PUBLIC_COUCHDB_URL=http://localhost:5984/
 COUCHDB_URL=http://couchdb:5984/
 # if runing next js localy

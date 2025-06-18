@@ -36,14 +36,15 @@ export function POST(request: NextRequest) {
         });
 
         // Set the AuthSession cookie in the response
+
         response.cookies.set('AuthSession', result.sessionToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            domain: new URL(couchdbUrlWeb).hostname,
-            sameSite: 'lax',
             maxAge: 600,
-            path: '/'
+            sameSite: 'strict',
+            domain: process.env.DOMAIN
         });
+
 
         return response;
     }).pipe(Effect.withSpan('session-create'), runNode);
