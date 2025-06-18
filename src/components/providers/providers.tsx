@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/sonner"
 import { CouchDBSessionProvider, useCouchDBSessionContext } from "@/components/providers/couchdb-session-provider"
 import { Provider as _PouchDBProvider, ProviderArguments } from 'use-pouchdb'
-import { couchdbUrlBase, getUserDbName } from "@/lib/db/common";
+import { couchdbUrlWeb, getUserDbName } from "@/lib/db/common";
 import PouchDB from "pouchdb-browser";
 import pouchdbFind from 'pouchdb-find';
 import pouchdbMapReduce from 'pouchdb-mapreduce';
@@ -62,13 +62,13 @@ const DbsProvider = ({ children }: { children: React.ReactNode }) => {
   const { sessionData } = useCouchDBSessionContext();
   useEffect(() => {
     if (!sessionData) return;
-    const chatsDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'chats')}`, {
+    const chatsDbRemote = new PouchDB(`${couchdbUrlWeb}/${getUserDbName(sessionData?.username ?? '', 'chats')}`, {
       skip_setup: true
     })
-    const messagesDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'messages')}`, {
+    const messagesDbRemote = new PouchDB(`${couchdbUrlWeb}/${getUserDbName(sessionData?.username ?? '', 'messages')}`, {
       skip_setup: true
     })
-    const profileDbRemote = new PouchDB(`${couchdbUrlBase}/${getUserDbName(sessionData?.username ?? '', 'profile')}`, {
+    const profileDbRemote = new PouchDB(`${couchdbUrlWeb}/${getUserDbName(sessionData?.username ?? '', 'profile')}`, {
       skip_setup: true
     })
     const chatsSync = chatsDb.sync(chatsDbRemote, {

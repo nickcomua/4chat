@@ -1,0 +1,1 @@
+export const couchdbUrlNode = process.env.COUCHDB_URL;

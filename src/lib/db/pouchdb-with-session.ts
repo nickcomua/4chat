@@ -1,4 +1,5 @@
 import PouchDB from 'pouchdb-browser';
+import { couchdbUrlWeb } from './common';
 
 // Utility to get session token from cookies (client-side)
 const getSessionTokenFromCookies = (): string | null => {
@@ -71,13 +72,10 @@ export const getUserDbWithSession = (
     dbType: 'chats' | 'messages' | 'profile',
     sessionToken?: string
 ): PouchDB.Database => {
-    const couchdbUrl = process.env.NEXT_PUBLIC_COUCHDB_URL;
-    if (!couchdbUrl) {
-        throw new Error("COUCHDB_URL environment variable is not set.");
-    }
+
 
     // Remove credentials from URL since we're using session authentication
-    const url = new URL(couchdbUrl);
+    const url = new URL(couchdbUrlWeb);
     const baseUrl = `${url.protocol}//${url.host}`;
     const dbName = `user_${userId}_${dbType}`;
     const dbUrl = `${baseUrl}/${dbName}`;

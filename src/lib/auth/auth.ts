@@ -45,6 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Initialize databases and create CouchDB user
         yield* Effect.log("userId", userId);
+        
         const existCheck = yield* Effect.tryPromise({
           try: () => userDb.get(`org.couchdb.user:${userId}`), catch: (e) => ({
             _tag: "GetUserError" as const, error: e as PouchDB.Core.Error

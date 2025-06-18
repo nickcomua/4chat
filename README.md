@@ -51,6 +51,28 @@ This is my submission for the [T3 ChatCloneathon](https://cloneathon.t3.chat/) c
 
 Create `.env.local` file with this params
 ```
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET="V380Fw4A0vvZu5RaG4IwKv2TybDxT9ZHIwzHOl/wMU8=" # Added by `npx auth`. Read more: https://cli.authjs.dev
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# CouchDB Configuration for Next.js
+COUCHDB_USER=
+COUCHDB_PASSWORD=
+
+# Public CouchDB URL (accessible from client-side)
+NEXT_PUBLIC_COUCHDB_URL=http://localhost:5984/
+COUCHDB_URL=http://couchdb:5984/
+# if runing next js localy
+#COUCHDB_URL=http://localhost:5984/
+POSTGRES_HOST=pgdb
+#if runing next js localy
+# POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_PASSWORD=
+# Environment
+# NODE_ENV=development
 
 ```
 

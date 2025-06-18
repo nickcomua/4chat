@@ -9,7 +9,7 @@ services:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     volumes:
-      - couchdb-dev-data:/opt/couchdb/data
+      # - couchdb-dev-data:/opt/couchdb/data
       - ./docker/couchdb/local.ini:/opt/couchdb/etc/local.d/local.ini
     networks:
       - main-network
@@ -36,7 +36,7 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - NEXT_PUBLIC_COUCHDB_URL=${NEXT_PUBLIC_COUCHDB_URL}
-      # - COUCHDB_URL=${COUCHDB_URL}
+      - COUCHDB_URL=${COUCHDB_URL}
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

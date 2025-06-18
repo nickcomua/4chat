@@ -1,5 +1,7 @@
 import { Effect } from 'effect';
 import { getUserCredentials } from './user-db';
+import { couchdbUrlWeb } from './common';
+import { couchdbUrlNode } from './node';
 
 // Session data interfaces
 export interface CouchDBSessionInfo {
@@ -19,11 +21,7 @@ export interface CouchDBSessionData {
 
 // Helper to get session URL
 const getSessionUrl = () => {
-    const couchdbUrl = process.env.NEXT_PUBLIC_COUCHDB_URL;
-    if (!couchdbUrl) {
-        throw new Error("NEXT_PUBLIC_COUCHDB_URL environment variable is not set");
-    }
-    return `${couchdbUrl}/_session`;
+    return `${couchdbUrlNode}/_session`;
 };
 
 // Generate CouchDB session
@@ -102,77 +100,4 @@ export function generateCouchDBSession(authUserId: string) {
             cookieHeader: setCookieHeader
         };
     }).pipe(Effect.withSpan('couchdb-session-generate'));
-}
-
-// Validate existing CouchDB session
-export function validateCouchDBSession(sessionToken: string) {
-    return Effect.gen(function* () {
-        const sessionUrl = getSessionUrl();
-        yield* Effect.log('sessionUrl', document);
-        const response = yield* Effect.tryPromise({
-            try: () => fetch(sessionUrl, {
-                method: 'GET',
-                credentials: "same-origin",
-                headers: {
-                    'Accept': 'application/json',
-                    'Cookie': `AuthSession=${sessionToken}`
-                }
-            }),
-            catch: error => ({ _tag: "SessionValidationError" as const, error:
-                'Failed to validate session with CouchDB'
-            })
-        }).pipe(Effect.withSpan('couchdb-validate-request'));
-
-        if (!response.ok) {
-            return null;
-        }
-
-        const sessionData = yield* Effect.tryPromise({
-            try: () => response.json(),
-            catch: error => ({ _tag: "SessionValidationError" as const, error:
-                'Failed to parse session validation response'
-            })
-        }).pipe(Effect.withSpan('parse-validation-response'));
-
-        // Check if user is authenticated
-        const data = sessionData as any;
-        yield* Effect.log('sessionDataValidate', data);
-        if (data.userCtx && data.userCtx.name) {
-            return {
-                username: data.userCtx.name,
-                roles: data.userCtx.roles || [],
-                authenticated: data.info?.authenticated || 'cookie'
-            };
-        }
-
-        return null;
-    }).pipe(
-        Effect.catchTag("SessionValidationError", () => Effect.succeed(null)),
-        Effect.withSpan('couchdb-session-validate')
-    );
-}
-
-// Delete/logout CouchDB session
-export function deleteCouchDBSession(sessionToken: string) {
-    return Effect.gen(function* () {
-        const sessionUrl = getSessionUrl();
-
-        const response = yield* Effect.tryPromise({
-            try: () => fetch(sessionUrl, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'Cookie': `AuthSession=${sessionToken}`
-                }
-            }),
-            catch: error => ({ _tag: "SessionDeletionError" as const, error:
-                'Failed to delete session from CouchDB'
-            })
-        }).pipe(Effect.withSpan('couchdb-delete-request'));
-
-        return response.ok;
-    }).pipe(
-        Effect.catchTag("SessionDeletionError", () => Effect.succeed(false)),
-        Effect.withSpan('couchdb-session-delete')
-    );
 }

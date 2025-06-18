@@ -98,7 +98,7 @@ export default async function AuthPage() {
       </div>
 
       {/* Terms and Privacy */}
-      <div className="mt-6 text-center text-sm text-muted-foreground/60">
+      {/* <div className="mt-6 text-center text-sm text-muted-foreground/60">
         <p>
           By continuing, you agree to our{" "}
           <Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground dark:hover:text-white">
@@ -109,7 +109,7 @@ export default async function AuthPage() {
             Privacy Policy
           </Link>
         </p>
-      </div>
+      </div> */}
     </div>
   )
 }

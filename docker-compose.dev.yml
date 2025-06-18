@@ -9,7 +9,7 @@ services:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     volumes:
-      - couchdb-dev-data:/opt/couchdb/data
+      # - couchdb-dev-data:/opt/couchdb/data
       - ./docker/couchdb/local.ini:/opt/couchdb/etc/local.d/local.ini
     networks:
       - main-network

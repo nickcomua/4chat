@@ -1,20 +1,21 @@
 import PouchDB from "pouchdb-browser";
 import find from "pouchdb-find";
 import { Effect } from "effect";
-import { couchdbUrlBase, getUserDbName } from "./common";
+import { getUserDbName } from "./common";
 import { ChatSettings, defaultChatSettings } from "@/lib/types/settings";
 import { Profile } from "next-auth";
+import { couchdbUrlNode } from "./node";
 
 PouchDB.plugin(find);
 
 
 const couchdbUser = process.env.COUCHDB_USER;
 const couchdbPassword = process.env.COUCHDB_PASSWORD;
-if (!couchdbUrlBase || !couchdbUser || !couchdbPassword) {
+if (!couchdbUrlNode || !couchdbUser || !couchdbPassword) {
     throw new Error("COUCHDB_URL environment variable is not set.");
 }
 
-const couchdbUrl = `${couchdbUrlBase.split('//')[0]}//${couchdbUser}:${couchdbPassword}@${couchdbUrlBase.split('//')[1]}`;
+const couchdbUrl = `${couchdbUrlNode.split('//')[0]}//${couchdbUser}:${couchdbPassword}@${couchdbUrlNode.split('//')[1]}`;
 console.log('couchdbUrl', couchdbUrl);
 // Function to get database name for a user
 
@@ -26,6 +27,7 @@ export const authJsDb =
         // e.g., http://user:pass@host:port/db
         // skip_setup: true, // Recommended for performance
     });
+console.log(`${couchdbUrl}/_users`)
 export const userDb = new PouchDB(`${couchdbUrl}/_users`)
 // Function to create a CouchDB user
 export const createCouchDBUser = Effect.fn("createCouchDBUser")(function* (userId: string, password: string) {

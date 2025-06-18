@@ -10,11 +10,12 @@ import { DocumentConflictError, InvalidDocumentError, PouchDBPutError, putDocume
 import { Chat, ChatAssistantMessage, ChatAssistantMessageChunk, ChatAssistantMessageError, ChatMessage, ChatUserMessage } from "@/lib/types/chat"
 import { ChatSettings } from "@/lib/types/settings"
 import { initialModels } from "@/lib/config/models"
-import { couchdbUrlBase, getUserDbName } from "../db/common"
+import { getUserDbName } from "../db/common"
 import PouchDB from "pouchdb-browser"
 import { mergeAiResponse } from "./common"
 import { runNode } from "../services/node"
 import { generateSystemPrompt } from "./system-prompt"
+import { couchdbUrlNode } from "../db/node"
 
 // Error definitions
 class GetCookiesError extends Schema.TaggedError<GetCookiesError>("GetCookiesError")("GetCookiesError", {
@@ -49,11 +50,11 @@ const getDb = <T extends {}>(sessionToken: string, url: string) => {
 }
 
 const getMessageDb = (sessionToken: string, userId: string) => {
-    return getDb<ChatMessage>(sessionToken, `${couchdbUrlBase}/${getUserDbName(userId, 'messages')}`)
+    return getDb<ChatMessage>(sessionToken, `${couchdbUrlNode}/${getUserDbName(userId, 'messages')}`)
 }
 
 const getChatDb = (sessionToken: string, userId: string) => {
-    return getDb<Chat>(sessionToken, `${couchdbUrlBase}/${getUserDbName(userId, 'chats')}`)
+    return getDb<Chat>(sessionToken, `${couchdbUrlNode}/${getUserDbName(userId, 'chats')}`)
 }
 
 // Define the workflow

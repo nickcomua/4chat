@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Session } from 'next-auth';
+import { couchdbUrlWeb } from '../db/common';
 
 interface CouchDBSessionData {
     username: string;
@@ -71,7 +72,7 @@ export const useCouchDBSession = (
     // Function to validate existing CouchDB session
     const validateSession = async (): Promise<boolean> => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_COUCHDB_URL}/_session`, {
+            const response = await fetch(`${couchdbUrlWeb}/_session`, {
                 method: 'GET',
                 credentials: "same-origin",
             });
