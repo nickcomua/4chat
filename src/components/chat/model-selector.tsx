@@ -22,7 +22,7 @@ export default function ModelSelector() {
     }
   })
   const profile = profiles[0]
-  const selectedModel = profile?.modelSettings?.preferredModel ?? "gemini-2-0-flash"
+  const selectedModel = profile?.modelSettings?.preferredModel ?? "gemini-2-5-flash"
   const onModelChange = (modelId: string) => {
     profileDb.put({
       ...profile,
@@ -87,7 +87,7 @@ export default function ModelSelector() {
                     "--color": feature.color
                   } as React.CSSProperties}
                 >
-                  <div className="absolute inset-0 bg-current opacity-20 dark:opacity-15"></div>
+                  <div style={{ backgroundColor: 'var(--color)' }} className="absolute inset-0 bg-current opacity-20 dark:opacity-15 "></div>
                   <FeatureIcon className="h-4 w-4" />
                 </div>
               )

@@ -81,9 +81,9 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
                 </div>
             </div>
             <div className="-mb-1.5"></div>
-            <div className="shiki not-prose relative bg-chat-accent text-sm font-[450] text-secondary-foreground [&_pre]:overflow-auto [&_pre]:!bg-transparent [&_pre]:px-[1em] [&_pre]:py-[1em]">
+            <div className="bg-gray-900 not-prose relative text-sm font-[450] text-secondary-foreground [&_pre]:overflow-auto [&_pre]:!bg-transparent [&_pre]:px-[1em] [&_pre]:py-[1em]">
                 <pre
-                    className={`shiki T3 Dark ${isWrapped ? "whitespace-pre-wrap" : ""}`}
+                    className={`${isWrapped ? "whitespace-pre-wrap" : ""}`}
                     tabIndex={-1}
                     style={{ backgroundColor: "rgb(29, 25, 33)", color: "rgb(210, 199, 225)" }}
                     dangerouslySetInnerHTML={{ __html: highlightedCode }}

@@ -1,6 +1,9 @@
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@tailwindcss/oxide'
-  - leveldown
   - msgpackr-extract
+  - protobufjs
   - sharp
+
+patchedDependencies:
+  pouchdb-browser: patches/pouchdb-browser.patch

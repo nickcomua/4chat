@@ -1,4 +1,3 @@
-// Settings schemas for T3 Chat Clone application using Effect Schema
 import { Schema } from "effect"
 
 // Model Feature Schema
@@ -108,6 +107,7 @@ export const PersonalPreferences = Schema.Struct({
   name: Schema.String.pipe(Schema.maxLength(50)),
   occupation: Schema.String.pipe(Schema.maxLength(100)),
   additionalInfo: Schema.String.pipe(Schema.maxLength(3000)),
+  // What traits should AI have?
   traits: Schema.Array(Schema.String).pipe(Schema.maxItems(50))
 })
 export type PersonalPreferences = typeof PersonalPreferences.Type
@@ -281,14 +281,14 @@ export const defaultChatSettings: ChatSettings = {
   
   modelSettings: {
     favoriteModels: [
-      "gemini-2.5-flash",
+      "gemini-2-5-flash",
       "o4-mini",
       "claude-4-sonnet-reasoning",
       "deepseek-r1-llama-distilled"
     ],
     // selectedFeatures: [],
     // showOnlyFreePlan: false,
-    preferredModel: "gemini-2.5-flash"
+    preferredModel: "gemini-2-5-flash"
   },
   
   apiKeySettings: {

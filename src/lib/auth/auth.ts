@@ -1,20 +1,40 @@
 import NextAuth from "next-auth";
 
-import { PouchDBAdapter } from "@auth/pouchdb-adapter";
-import { authConfig } from "./auth.config";
+// import { PouchDBAdapter } from "@auth/pouchdb-adapter";
 import { authJsDb, initializeUserDatabases, storeUserCredentials, userDb } from "@/lib/db/user-db";
 import { Effect } from "effect";
 import { NodeSdkLive, runNode } from "@/lib/services/node";
+import GoogleProvider from "next-auth/providers/google";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  pages: {
+    signIn: "/auth",
+  },
+  trustHost: true,
+  session: { strategy: "jwt" },
   debug: process.env.NODE_ENV !== 'production',
   // adapter: PouchDBAdapter({
   //   pouchdb: authJsDb,
   // }),
 
   callbacks: {
-    ...authConfig.callbacks,
+    jwt({ token, user, profile }) {
+      if (user) {
+        token.id = profile?.sub ?? user.id
+      }
+      return token
+    },
+    session({ session, token }) {
+      // With database strategy, we get the user object directly
+      session.user.id = token.id as string
+      return session
+    },
     signIn({ user, profile }) {
       return Effect.gen(function* () {
         const userId = (profile?.sub ?? user.id)?.toLowerCase(); // @todo add  effect ts workflow

@@ -1,5 +1,4 @@
 import { Effect, Schema } from "effect";
-import PouchDB from "pouchdb";
 
 // Define error types for different PouchDB put failures
 export class PouchDBPutError extends Schema.TaggedError<PouchDBPutError>()("PouchDBPutError", {
@@ -39,9 +38,9 @@ type PutResponse = typeof PutResponseSchema.Type;
  * @param doc - The document to put into the database
  * @returns An Effect that resolves to the put response or fails with appropriate error
  */
-export const putDocument = <T extends { _id: string; _rev?: string }>(
+export const putDocument = <T extends {}>(
     db: PouchDB.Database<T>,
-    doc: T & { _id: string; _rev?: string }
+    doc: T
 ): Effect.Effect<PutResponse, PouchDBPutError | DocumentConflictError | InvalidDocumentError> => {
     return Effect.tryPromise({
         try: () => db.put(doc),
@@ -54,6 +53,7 @@ export const putDocument = <T extends { _id: string; _rev?: string }>(
             if (!isPouchError(error)) {
                 return new PouchDBPutError({
                     message: "Unknown error occurred during put operation",
+                    // @ts-ignore
                     docId: doc._id,
                     error: String(error)
                 });
@@ -63,14 +63,19 @@ export const putDocument = <T extends { _id: string; _rev?: string }>(
             switch (error.name) {
                 case "conflict":
                     return new DocumentConflictError({
+                        // @ts-ignore
                         message: `Document update conflict for id: ${doc._id}`,
+                        // @ts-ignore
                         docId: doc._id,
+                        // @ts-ignore
                         docRev: doc._rev || "unknown"
                     });
 
                 case "invalid_id":
                     return new InvalidDocumentError({
+                        // @ts-ignore
                         message: `Invalid document ID: ${doc._id}`,
+                        // @ts-ignore
                         docId: doc._id
                     });
 
@@ -82,6 +87,7 @@ export const putDocument = <T extends { _id: string; _rev?: string }>(
                 case "missing_rev":
                     return new InvalidDocumentError({
                         message: `Document is missing _rev field for update operation`,
+                        // @ts-ignore
                         docId: doc._id
                     });
 
@@ -89,7 +95,9 @@ export const putDocument = <T extends { _id: string; _rev?: string }>(
                     return new PouchDBPutError({
                         message: error.message || "Unknown database error",
                         status: error.status,
+                        // @ts-ignore
                         docId: doc._id,
+                        // @ts-ignore
                         docRev: doc._rev
                     });
             }
@@ -98,7 +106,9 @@ export const putDocument = <T extends { _id: string; _rev?: string }>(
         Effect.withSpan("putDocument", {
             attributes: {
                 db: db.name,
+                // @ts-ignore
                 docId: doc._id,
+                // @ts-ignore
                 docRev: doc._rev
             }
         })

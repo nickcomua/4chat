@@ -1,4 +1,4 @@
-import PouchDB from "pouchdb";
+import PouchDB from "pouchdb-browser";
 import find from "pouchdb-find";
 import { Effect } from "effect";
 import { couchdbUrlBase, getUserDbName } from "./common";
@@ -80,7 +80,7 @@ export function initializeUserDatabases(userId: string, profile: Profile) {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Basic ${Buffer.from(`admin:admin`).toString('base64')}` // @TODO: remove get from env
+                        'Authorization': `Basic ${Buffer.from(`${couchdbUser}:${couchdbPassword}`).toString('base64')}` // @TODO: remove get from env
                     },
                     body: JSON.stringify({
                         members: {
@@ -88,7 +88,7 @@ export function initializeUserDatabases(userId: string, profile: Profile) {
                             roles: []
                         },
                         admins: {
-                            names: [userId, 'admin'],
+                            names: [userId],
                             roles: []
                         }
                     })

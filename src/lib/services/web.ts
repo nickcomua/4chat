@@ -1,14 +1,14 @@
 import { WebSdk } from "@effect/opentelemetry"
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-web"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
-import { Effect, Layer, Scope } from "effect";
+import { Effect, Layer, LogLevel, Logger, Scope } from "effect";
 import { DevTools } from "@effect/experimental";
 import { BrowserSocket } from "@effect/platform-browser";
 import { FetchHttpClient, HttpClient } from "@effect/platform";
 import { scope } from "effect/Layer";
 
 const WebSdkLive = WebSdk.layer(() => ({
-  resource: { serviceName: "t3-chat-front" },
+  resource: { serviceName: "4chat-front" },
   spanProcessor: new BatchSpanProcessor(new OTLPTraceExporter())
 }))
 const DevToolsLive = DevTools.layerWebSocket().pipe(
@@ -21,4 +21,6 @@ export const runWeb = <T>(effect: Effect.Effect<T, never, HttpClient.HttpClient 
     Effect.provide(WebSdkLive),
     Effect.provide(DevToolsLive),
     Effect.provide(FetchHttpClient.layer),
+    Effect.provide(Logger.pretty),
+    // Effect.provide(Logger.minimumLogLevel(LogLevel.All)), 
     Effect.runPromise);

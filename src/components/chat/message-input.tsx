@@ -1,21 +1,23 @@
 "use client"
 
 import React, { useEffect, useRef } from "react"
-import { ArrowUp } from "lucide-react"
+import { ArrowUp, X } from "lucide-react"
 import ModelSelector from "./model-selector"
 import { Button } from "@/components/ui/button"
-
-interface MessageInputProps {
-  inputValue: string
-  onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onSubmit: (e: React.FormEvent) => boolean
-}
 
 export default function MessageInput({
   inputValue,
   onInputChange,
   onSubmit,
-}: MessageInputProps) {
+  isEditing,
+  onCancelEdit,
+}: {
+  inputValue: string
+  onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  onSubmit: (e: React.FormEvent) => boolean
+  isEditing?: boolean
+  onCancelEdit?: () => void
+}) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -67,7 +69,7 @@ export default function MessageInput({
             }
           >
             <div
-              className="relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 bg-[--chat-input-background] px-3 pt-3 text-secondary-foreground outline outline-8 outline-[hsl(var(--chat-input-gradient)/0.5)] pb-safe-offset-3 max-sm:pb-6 sm:max-w-3xl dark:border-[hsl(0,0%,83%)]/[0.04] dark:bg-secondary/[0.045] dark:outline-chat-background/40"
+              className="relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 bg-[--chat-input-background] px-3 pt-3 text-secondary-foreground outline outline-8 outline-primary/10 pb-safe-offset-3 max-sm:pb-6 sm:max-w-3xl dark:border-[hsl(0,0%,83%)]/[0.04] dark:bg-secondary/[0.045] dark:outline-chat-background/40"
               style={{
                 boxShadow:
                   "rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px",
@@ -78,7 +80,7 @@ export default function MessageInput({
                   <textarea
                     name="input"
                     id="chat-input"
-                    placeholder="Type your message here..."
+                    placeholder={isEditing ? "Edit your message..." : "Type your message here..."}
                     className="w-full resize-none bg-transparent text-base leading-6 text-foreground outline-none placeholder:text-secondary-foreground/60 disabled:opacity-0"
                     aria-label="Message input"
                     aria-describedby="chat-input-description"
@@ -96,10 +98,19 @@ export default function MessageInput({
 
                 <div className="-mb-px mt-2 flex w-full flex-row-reverse justify-between">
                   <div className="-mr-0.5 -mt-0.5 flex items-center justify-center gap-2">
+                    {isEditing && (
+                      <Button
+                        onClick={onCancelEdit}
+                        className="inline-flex h-9 w-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-secondary p-2 text-sm font-semibold text-secondary-foreground shadow transition-colors hover:bg-secondary/80"
+                        aria-label="Cancel edit"
+                      >
+                        <X className="!size-5" />
+                      </Button>
+                    )}
                     <Button
                       onClick={handleLocalSubmit}
                       disabled={!inputValue.trim()}
-                      className="inline-flex h-9 w-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[rgb(162,59,103)] p-2 text-sm font-semibold text-pink-50 shadow transition-colors hover:bg-[#d56698] active:bg-[rgb(162,59,103)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[rgb(162,59,103)] disabled:active:bg-[rgb(162,59,103)] dark:bg-primary/20 dark:hover:bg-pink-800/70 dark:active:bg-pink-800/40 disabled:dark:hover:bg-primary/20 disabled:dark:active:bg-primary/20"
+                      className="inline-flex h-9 w-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-primary p-2 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90 active:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary disabled:active:bg-primary dark:bg-[oklch(0.707_0.1406_90.77)] dark:text-[oklch(0.2_0.0102_242.05)] dark:hover:bg-[oklch(0.607_0.1406_90.77)] dark:active:bg-[oklch(0.507_0.1406_90.77)] disabled:dark:hover:bg-[oklch(0.707_0.1406_90.77)] disabled:dark:active:bg-[oklch(0.707_0.1406_90.77)]"
                       aria-label={inputValue.trim() ? "Send message" : "Message requires text"}
                     >
                       <ArrowUp className="!size-5" />
@@ -108,7 +119,7 @@ export default function MessageInput({
 
                   <div className="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
                     <div className="ml-[-7px] flex items-center gap-1">
-                      <ModelSelector />
+                      {!isEditing && <ModelSelector />}
                     </div>
                   </div>
                 </div>

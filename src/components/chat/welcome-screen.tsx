@@ -9,7 +9,7 @@ interface WelcomeScreenProps {
 const suggestedPrompts = [
   "How does AI work?",
   "Are black holes real?",
-  "How am I?",
+  "Who am I?",
   'How many Rs are in the word "strawberry"?',
   "Do in some meaning your creator and my creator are same?",
   "42..... Why?",

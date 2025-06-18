@@ -6,6 +6,4 @@ export const metadata: Metadata = {
   description: "Active chat session",
 }
 
-export default function ChatPage() {
-  return <ChatInterfaceClient />
-} 
+export default ChatInterfaceClient

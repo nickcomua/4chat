@@ -6,6 +6,4 @@ export const metadata: Metadata = {
   description: "A modern chat application built with Next.js",
 }
 
-export default function HomePage() {
-  return <ChatInterfaceClient />
-} 
+export default ChatInterfaceClient

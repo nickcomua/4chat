@@ -19,9 +19,9 @@ export interface CouchDBSessionData {
 
 // Helper to get session URL
 const getSessionUrl = () => {
-    const couchdbUrl = process.env.COUCHDB_URL;
+    const couchdbUrl = process.env.NEXT_PUBLIC_COUCHDB_URL;
     if (!couchdbUrl) {
-        throw new Error("COUCHDB_URL environment variable is not set");
+        throw new Error("NEXT_PUBLIC_COUCHDB_URL environment variable is not set");
     }
     return `${couchdbUrl}/_session`;
 };

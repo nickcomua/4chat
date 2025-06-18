@@ -1,0 +1,666 @@
+diff --git a/lib/index.es.js b/lib/index.es.js
+index a4098232d000eb67d7916e41c46a5cf0f7731550..cccdbed1ec3c9b407a0933afd497803d30c0dd5e 100644
+--- a/lib/index.es.js
++++ b/lib/index.es.js
+@@ -100,7 +100,7 @@ function toPromise(func) {
+   return function (...args) {
+     // Clone arguments
+     args = clone(args);
+-    var self = this;
++    var globalThis = this;
+     // if the last argument is a function, assume its a callback
+     var usedCB = (typeof args[args.length - 1] === 'function') ? args.pop() : false;
+     var promise = new Promise(function (fulfill, reject) {
+@@ -116,7 +116,7 @@ function toPromise(func) {
+         // create a callback for this invocation
+         // apply the function in the orig context
+         args.push(callback);
+-        resp = func.apply(self, args);
++        resp = func.apply(globalThis, args);
+         if (resp && typeof resp.then === 'function') {
+           fulfill(resp);
+         }
+@@ -134,23 +134,23 @@ function toPromise(func) {
+   };
+ }
+ 
+-function logApiCall(self, name, args) {
++function logApiCall(globalThis, name, args) {
+   /* istanbul ignore if */
+-  if (self.constructor.listeners('debug').length) {
+-    var logArgs = ['api', self.name, name];
++  if (globalThis.constructor.listeners('debug').length) {
++    var logArgs = ['api', globalThis.name, name];
+     for (var i = 0; i < args.length - 1; i++) {
+       logArgs.push(args[i]);
+     }
+-    self.constructor.emit('debug', logArgs);
++    globalThis.constructor.emit('debug', logArgs);
+ 
+-    // override the callback itself to log the response
++    // override the callback itglobalThis to log the response
+     var origCallback = args[args.length - 1];
+     args[args.length - 1] = function (err, res) {
+-      var responseArgs = ['api', self.name, name];
++      var responseArgs = ['api', globalThis.name, name];
+       responseArgs = responseArgs.concat(
+         err ? ['error', err] : ['success', res]
+       );
+-      self.constructor.emit('debug', responseArgs);
++      globalThis.constructor.emit('debug', responseArgs);
+       origCallback(err, res);
+     };
+   }
+@@ -164,15 +164,15 @@ function adapterFun(name, callback) {
+     if (this._destroyed) {
+       return Promise.reject(new Error('database is destroyed'));
+     }
+-    var self = this;
+-    logApiCall(self, name, args);
++    var globalThis = this;
++    logApiCall(globalThis, name, args);
+     if (!this.taskqueue.isReady) {
+       return new Promise(function (fulfill, reject) {
+-        self.taskqueue.addTask(function (failed) {
++        globalThis.taskqueue.addTask(function (failed) {
+           if (failed) {
+             reject(failed);
+           } else {
+-            fulfill(self[name].apply(self, args));
++            fulfill(globalThis[name].apply(globalThis, args));
+           }
+         });
+       });
+@@ -361,9 +361,9 @@ class Changes extends EE {
+       return;
+     }
+     var inprogress = false;
+-    var self = this;
++    var globalThis = this;
+     function eventFunction() {
+-      if (!self._listeners[id]) {
++      if (!globalThis._listeners[id]) {
+         return;
+       }
+       if (inprogress) {
+@@ -871,7 +871,7 @@ function readAsArrayBuffer(blob, callback) {
+ 
+ // this is not used in the browser
+ 
+-var setImmediateShim = self.setImmediate || self.setTimeout;
++var setImmediateShim = globalThis.setImmediate || globalThis.setTimeout;
+ var MD5_CHUNK_SIZE = 32768;
+ 
+ function rawToBase64(raw) {
+@@ -1459,10 +1459,10 @@ function latest(rev, metadata) {
+   throw new Error('Unable to resolve latest revision for id ' + metadata.id + ', rev ' + rev);
+ }
+ 
+-function tryCatchInChangeListener(self, change, pending, lastSeq) {
++function tryCatchInChangeListener(globalThis, change, pending, lastSeq) {
+   // isolate try/catches to avoid V8 deoptimizations
+   try {
+-    self.emit('change', change, pending, lastSeq);
++    globalThis.emit('change', change, pending, lastSeq);
+   } catch (e) {
+     guardedConsole('error', 'Error in .on("change", function):', e);
+   }
+@@ -1739,17 +1739,17 @@ function allDocsKeysParse(opts) {
+ 
+ // all compaction is done in a queue, to avoid attaching
+ // too many listeners at once
+-function doNextCompaction(self) {
+-  var task = self._compactionQueue[0];
++function doNextCompaction(globalThis) {
++  var task = globalThis._compactionQueue[0];
+   var opts = task.opts;
+   var callback = task.callback;
+-  self.get('_local/compaction').catch(function () {
++  globalThis.get('_local/compaction').catch(function () {
+     return false;
+   }).then(function (doc) {
+     if (doc && doc.last_seq) {
+       opts.last_seq = doc.last_seq;
+     }
+-    self._compact(opts, function (err, res) {
++    globalThis._compact(opts, function (err, res) {
+       /* istanbul ignore if */
+       if (err) {
+         callback(err);
+@@ -1757,9 +1757,9 @@ function doNextCompaction(self) {
+         callback(null, res);
+       }
+       nextTick(function () {
+-        self._compactionQueue.shift();
+-        if (self._compactionQueue.length) {
+-          doNextCompaction(self);
++        globalThis._compactionQueue.shift();
++        if (globalThis._compactionQueue.length) {
++          doNextCompaction(globalThis);
+         }
+       });
+     });
+@@ -1774,8 +1774,8 @@ function appendPurgeSeq(db, docId, rev$$1) {
+       rev: rev$$1,
+       purgeSeq,
+     });
+-    if (doc.purges.length > self.purged_infos_limit) {
+-      doc.purges.splice(0, doc.purges.length - self.purged_infos_limit);
++    if (doc.purges.length > globalThis.purged_infos_limit) {
++      doc.purges.splice(0, doc.purges.length - globalThis.purged_infos_limit);
+     }
+     doc.purgeSeq = purgeSeq;
+     return doc;
+@@ -2622,9 +2622,9 @@ AbstractPouchDB.prototype.purge = adapterFun('_purge', function (docId, rev$$1,
+   if (typeof this._purge === 'undefined') {
+     return callback(createError(UNKNOWN_ERROR, 'Purge is not implemented in the ' + this.adapter + ' adapter.'));
+   }
+-  var self = this;
++  var globalThis = this;
+ 
+-  self._getRevisionTree(docId, (error, revs) => {
++  globalThis._getRevisionTree(docId, (error, revs) => {
+     if (error) {
+       return callback(error);
+     }
+@@ -2637,11 +2637,11 @@ AbstractPouchDB.prototype.purge = adapterFun('_purge', function (docId, rev$$1,
+     } catch (error) {
+       return callback(error.message || error);
+     }
+-    self._purge(docId, path, (error, result) => {
++    globalThis._purge(docId, path, (error, result) => {
+       if (error) {
+         return callback(error);
+       } else {
+-        appendPurgeSeq(self, docId, rev$$1).then(function () {
++        appendPurgeSeq(globalThis, docId, rev$$1).then(function () {
+           return callback(null, result);
+         });
+       }
+@@ -2753,28 +2753,28 @@ function createClass(parent, init) {
+ //     var db2 = new PouchDB('foo');
+ //     db1.destroy();
+ // ^ these two both need to emit 'destroyed' events,
+-// as well as the PouchDB constructor itself.
++// as well as the PouchDB constructor itglobalThis.
+ // So we have one db object (whichever one got destroy() called on it)
+ // responsible for emitting the initial event, which then gets emitted
+ // by the constructor, which then broadcasts it to any other dbs
+ // that may have been created with the same name.
+-function prepareForDestruction(self) {
++function prepareForDestruction(globalThis) {
+ 
+   function onDestroyed(from_constructor) {
+-    self.removeListener('closed', onClosed);
++    globalThis.removeListener('closed', onClosed);
+     if (!from_constructor) {
+-      self.constructor.emit('destroyed', self.name);
++      globalThis.constructor.emit('destroyed', globalThis.name);
+     }
+   }
+ 
+   function onClosed() {
+-    self.removeListener('destroyed', onDestroyed);
+-    self.constructor.emit('unref', self);
++    globalThis.removeListener('destroyed', onDestroyed);
++    globalThis.constructor.emit('unref', globalThis);
+   }
+ 
+-  self.once('destroyed', onDestroyed);
+-  self.once('closed', onClosed);
+-  self.constructor.emit('ref', self);
++  globalThis.once('destroyed', onDestroyed);
++  globalThis.once('closed', onClosed);
++  globalThis.constructor.emit('ref', globalThis);
+ }
+ 
+ class PouchInternal extends AbstractPouchDB {
+@@ -6996,7 +6996,7 @@ function HttpPouch(opts, callback) {
+   });
+ 
+   api.bulkGet = adapterFun('bulkGet', function (opts, callback) {
+-    const self = this;
++    const globalThis = this;
+ 
+     async function doBulkGet(cb) {
+       const params = {};
+@@ -7049,7 +7049,7 @@ function HttpPouch(opts, callback) {
+         const subOpts = pick(opts, ['revs', 'attachments', 'binary', 'latest']);
+         subOpts.docs = opts.docs.slice(i * batchSize,
+           Math.min(opts.docs.length, (i + 1) * batchSize));
+-        bulkGet(self, subOpts, onResult(i));
++        bulkGet(globalThis, subOpts, onResult(i));
+       }
+     }
+ 
+@@ -9451,9 +9451,9 @@ class CheckpointerInternal {
+   }
+ 
+   writeCheckpoint(checkpoint, session) {
+-    var self = this;
++    var globalThis = this;
+     return this.updateTarget(checkpoint, session).then(function () {
+-      return self.updateSource(checkpoint, session);
++      return globalThis.updateSource(checkpoint, session);
+     });
+   }
+ 
+@@ -9468,12 +9468,12 @@ class CheckpointerInternal {
+ 
+   updateSource(checkpoint, session) {
+     if (this.opts.writeSourceCheckpoint) {
+-      var self = this;
++      var globalThis = this;
+       return updateCheckpoint(this.src, this.id, checkpoint,
+         session, this.returnValue)
+         .catch(function (err) {
+           if (isForbiddenError(err)) {
+-            self.opts.writeSourceCheckpoint = false;
++            globalThis.opts.writeSourceCheckpoint = false;
+             return true;
+           }
+           throw err;
+@@ -9484,14 +9484,14 @@ class CheckpointerInternal {
+   }
+ 
+   getCheckpoint() {
+-    var self = this;
++    var globalThis = this;
+ 
+-    if (!self.opts.writeSourceCheckpoint && !self.opts.writeTargetCheckpoint) {
++    if (!globalThis.opts.writeSourceCheckpoint && !globalThis.opts.writeTargetCheckpoint) {
+       return Promise.resolve(LOWEST_SEQ);
+     }
+ 
+-    if (self.opts && self.opts.writeSourceCheckpoint && !self.opts.writeTargetCheckpoint) {
+-      return self.src.get(self.id).then(function (sourceDoc) {
++    if (globalThis.opts && globalThis.opts.writeSourceCheckpoint && !globalThis.opts.writeTargetCheckpoint) {
++      return globalThis.src.get(globalThis.id).then(function (sourceDoc) {
+         return sourceDoc.last_seq || LOWEST_SEQ;
+       }).catch(function (err) {
+         /* istanbul ignore if */
+@@ -9502,12 +9502,12 @@ class CheckpointerInternal {
+       });
+     }
+ 
+-    return self.target.get(self.id).then(function (targetDoc) {
+-      if (self.opts && self.opts.writeTargetCheckpoint && !self.opts.writeSourceCheckpoint) {
++    return globalThis.target.get(globalThis.id).then(function (targetDoc) {
++      if (globalThis.opts && globalThis.opts.writeTargetCheckpoint && !globalThis.opts.writeSourceCheckpoint) {
+         return targetDoc.last_seq || LOWEST_SEQ;
+       }
+ 
+-      return self.src.get(self.id).then(function (sourceDoc) {
++      return globalThis.src.get(globalThis.id).then(function (sourceDoc) {
+         // Since we can't migrate an old version doc to a new one
+         // (no session id), we just go with the lowest seq in this case
+         /* istanbul ignore if */
+@@ -9529,14 +9529,14 @@ class CheckpointerInternal {
+         return LOWEST_SEQ;
+       }, function (err) {
+         if (err.status === 404 && targetDoc.last_seq) {
+-          return self.src.put({
+-            _id: self.id,
++          return globalThis.src.put({
++            _id: globalThis.id,
+             last_seq: LOWEST_SEQ
+           }).then(function () {
+             return LOWEST_SEQ;
+           }, function (err) {
+             if (isForbiddenError(err)) {
+-              self.opts.writeSourceCheckpoint = false;
++              globalThis.opts.writeSourceCheckpoint = false;
+               return targetDoc.last_seq;
+             }
+             /* istanbul ignore next */
+@@ -10558,14 +10558,14 @@ function replication(PouchDB) {
+ 
+   Object.defineProperty(PouchDB.prototype, 'replicate', {
+     get: function () {
+-      var self = this;
++      var globalThis = this;
+       if (typeof this.replicateMethods === 'undefined') {
+         this.replicateMethods = {
+           from: function (other, opts, callback) {
+-            return self.constructor.replicate(other, self, opts, callback);
++            return globalThis.constructor.replicate(other, globalThis, opts, callback);
+           },
+           to: function (other, opts, callback) {
+-            return self.constructor.replicate(self, other, opts, callback);
++            return globalThis.constructor.replicate(globalThis, other, opts, callback);
+           }
+         };
+       }
+diff --git a/lib/index.js b/lib/index.js
+index ec56ac95c65135438348e0d00a5fdcd3858c3cc7..b903352a1f8dec224d5f37ffcf34487d2ca2107b 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -104,7 +104,7 @@ function toPromise(func) {
+   return function (...args) {
+     // Clone arguments
+     args = clone(args);
+-    var self = this;
++    var globalThis = this;
+     // if the last argument is a function, assume its a callback
+     var usedCB = (typeof args[args.length - 1] === 'function') ? args.pop() : false;
+     var promise = new Promise(function (fulfill, reject) {
+@@ -120,7 +120,7 @@ function toPromise(func) {
+         // create a callback for this invocation
+         // apply the function in the orig context
+         args.push(callback);
+-        resp = func.apply(self, args);
++        resp = func.apply(globalThis, args);
+         if (resp && typeof resp.then === 'function') {
+           fulfill(resp);
+         }
+@@ -138,23 +138,23 @@ function toPromise(func) {
+   };
+ }
+ 
+-function logApiCall(self, name, args) {
++function logApiCall(globalThis, name, args) {
+   /* istanbul ignore if */
+-  if (self.constructor.listeners('debug').length) {
+-    var logArgs = ['api', self.name, name];
++  if (globalThis.constructor.listeners('debug').length) {
++    var logArgs = ['api', globalThis.name, name];
+     for (var i = 0; i < args.length - 1; i++) {
+       logArgs.push(args[i]);
+     }
+-    self.constructor.emit('debug', logArgs);
++    globalThis.constructor.emit('debug', logArgs);
+ 
+-    // override the callback itself to log the response
++    // override the callback itglobalThis to log the response
+     var origCallback = args[args.length - 1];
+     args[args.length - 1] = function (err, res) {
+-      var responseArgs = ['api', self.name, name];
++      var responseArgs = ['api', globalThis.name, name];
+       responseArgs = responseArgs.concat(
+         err ? ['error', err] : ['success', res]
+       );
+-      self.constructor.emit('debug', responseArgs);
++      globalThis.constructor.emit('debug', responseArgs);
+       origCallback(err, res);
+     };
+   }
+@@ -168,15 +168,15 @@ function adapterFun(name, callback) {
+     if (this._destroyed) {
+       return Promise.reject(new Error('database is destroyed'));
+     }
+-    var self = this;
+-    logApiCall(self, name, args);
++    var globalThis = this;
++    logApiCall(globalThis, name, args);
+     if (!this.taskqueue.isReady) {
+       return new Promise(function (fulfill, reject) {
+-        self.taskqueue.addTask(function (failed) {
++        globalThis.taskqueue.addTask(function (failed) {
+           if (failed) {
+             reject(failed);
+           } else {
+-            fulfill(self[name].apply(self, args));
++            fulfill(globalThis[name].apply(globalThis, args));
+           }
+         });
+       });
+@@ -365,9 +365,9 @@ class Changes extends EE {
+       return;
+     }
+     var inprogress = false;
+-    var self = this;
++    var globalThis = this;
+     function eventFunction() {
+-      if (!self._listeners[id]) {
++      if (!globalThis._listeners[id]) {
+         return;
+       }
+       if (inprogress) {
+@@ -875,7 +875,7 @@ function readAsArrayBuffer(blob, callback) {
+ 
+ // this is not used in the browser
+ 
+-var setImmediateShim = self.setImmediate || self.setTimeout;
++var setImmediateShim = globalThis.setImmediate || globalThis.setTimeout;
+ var MD5_CHUNK_SIZE = 32768;
+ 
+ function rawToBase64(raw) {
+@@ -1463,10 +1463,10 @@ function latest(rev, metadata) {
+   throw new Error('Unable to resolve latest revision for id ' + metadata.id + ', rev ' + rev);
+ }
+ 
+-function tryCatchInChangeListener(self, change, pending, lastSeq) {
++function tryCatchInChangeListener(globalThis, change, pending, lastSeq) {
+   // isolate try/catches to avoid V8 deoptimizations
+   try {
+-    self.emit('change', change, pending, lastSeq);
++    globalThis.emit('change', change, pending, lastSeq);
+   } catch (e) {
+     guardedConsole('error', 'Error in .on("change", function):', e);
+   }
+@@ -1743,17 +1743,17 @@ function allDocsKeysParse(opts) {
+ 
+ // all compaction is done in a queue, to avoid attaching
+ // too many listeners at once
+-function doNextCompaction(self) {
+-  var task = self._compactionQueue[0];
++function doNextCompaction(globalThis) {
++  var task = globalThis._compactionQueue[0];
+   var opts = task.opts;
+   var callback = task.callback;
+-  self.get('_local/compaction').catch(function () {
++  globalThis.get('_local/compaction').catch(function () {
+     return false;
+   }).then(function (doc) {
+     if (doc && doc.last_seq) {
+       opts.last_seq = doc.last_seq;
+     }
+-    self._compact(opts, function (err, res) {
++    globalThis._compact(opts, function (err, res) {
+       /* istanbul ignore if */
+       if (err) {
+         callback(err);
+@@ -1761,9 +1761,9 @@ function doNextCompaction(self) {
+         callback(null, res);
+       }
+       nextTick(function () {
+-        self._compactionQueue.shift();
+-        if (self._compactionQueue.length) {
+-          doNextCompaction(self);
++        globalThis._compactionQueue.shift();
++        if (globalThis._compactionQueue.length) {
++          doNextCompaction(globalThis);
+         }
+       });
+     });
+@@ -1778,8 +1778,8 @@ function appendPurgeSeq(db, docId, rev$$1) {
+       rev: rev$$1,
+       purgeSeq,
+     });
+-    if (doc.purges.length > self.purged_infos_limit) {
+-      doc.purges.splice(0, doc.purges.length - self.purged_infos_limit);
++    if (doc.purges.length > globalThis.purged_infos_limit) {
++      doc.purges.splice(0, doc.purges.length - globalThis.purged_infos_limit);
+     }
+     doc.purgeSeq = purgeSeq;
+     return doc;
+@@ -2626,9 +2626,9 @@ AbstractPouchDB.prototype.purge = adapterFun('_purge', function (docId, rev$$1,
+   if (typeof this._purge === 'undefined') {
+     return callback(createError(UNKNOWN_ERROR, 'Purge is not implemented in the ' + this.adapter + ' adapter.'));
+   }
+-  var self = this;
++  var globalThis = this;
+ 
+-  self._getRevisionTree(docId, (error, revs) => {
++  globalThis._getRevisionTree(docId, (error, revs) => {
+     if (error) {
+       return callback(error);
+     }
+@@ -2641,11 +2641,11 @@ AbstractPouchDB.prototype.purge = adapterFun('_purge', function (docId, rev$$1,
+     } catch (error) {
+       return callback(error.message || error);
+     }
+-    self._purge(docId, path, (error, result) => {
++    globalThis._purge(docId, path, (error, result) => {
+       if (error) {
+         return callback(error);
+       } else {
+-        appendPurgeSeq(self, docId, rev$$1).then(function () {
++        appendPurgeSeq(globalThis, docId, rev$$1).then(function () {
+           return callback(null, result);
+         });
+       }
+@@ -2757,28 +2757,28 @@ function createClass(parent, init) {
+ //     var db2 = new PouchDB('foo');
+ //     db1.destroy();
+ // ^ these two both need to emit 'destroyed' events,
+-// as well as the PouchDB constructor itself.
++// as well as the PouchDB constructor itglobalThis.
+ // So we have one db object (whichever one got destroy() called on it)
+ // responsible for emitting the initial event, which then gets emitted
+ // by the constructor, which then broadcasts it to any other dbs
+ // that may have been created with the same name.
+-function prepareForDestruction(self) {
++function prepareForDestruction(globalThis) {
+ 
+   function onDestroyed(from_constructor) {
+-    self.removeListener('closed', onClosed);
++    globalThis.removeListener('closed', onClosed);
+     if (!from_constructor) {
+-      self.constructor.emit('destroyed', self.name);
++      globalThis.constructor.emit('destroyed', globalThis.name);
+     }
+   }
+ 
+   function onClosed() {
+-    self.removeListener('destroyed', onDestroyed);
+-    self.constructor.emit('unref', self);
++    globalThis.removeListener('destroyed', onDestroyed);
++    globalThis.constructor.emit('unref', globalThis);
+   }
+ 
+-  self.once('destroyed', onDestroyed);
+-  self.once('closed', onClosed);
+-  self.constructor.emit('ref', self);
++  globalThis.once('destroyed', onDestroyed);
++  globalThis.once('closed', onClosed);
++  globalThis.constructor.emit('ref', globalThis);
+ }
+ 
+ class PouchInternal extends AbstractPouchDB {
+@@ -7000,7 +7000,7 @@ function HttpPouch(opts, callback) {
+   });
+ 
+   api.bulkGet = adapterFun('bulkGet', function (opts, callback) {
+-    const self = this;
++    const globalThis = this;
+ 
+     async function doBulkGet(cb) {
+       const params = {};
+@@ -7053,7 +7053,7 @@ function HttpPouch(opts, callback) {
+         const subOpts = pick(opts, ['revs', 'attachments', 'binary', 'latest']);
+         subOpts.docs = opts.docs.slice(i * batchSize,
+           Math.min(opts.docs.length, (i + 1) * batchSize));
+-        bulkGet(self, subOpts, onResult(i));
++        bulkGet(globalThis, subOpts, onResult(i));
+       }
+     }
+ 
+@@ -9455,9 +9455,9 @@ class CheckpointerInternal {
+   }
+ 
+   writeCheckpoint(checkpoint, session) {
+-    var self = this;
++    var globalThis = this;
+     return this.updateTarget(checkpoint, session).then(function () {
+-      return self.updateSource(checkpoint, session);
++      return globalThis.updateSource(checkpoint, session);
+     });
+   }
+ 
+@@ -9472,12 +9472,12 @@ class CheckpointerInternal {
+ 
+   updateSource(checkpoint, session) {
+     if (this.opts.writeSourceCheckpoint) {
+-      var self = this;
++      var globalThis = this;
+       return updateCheckpoint(this.src, this.id, checkpoint,
+         session, this.returnValue)
+         .catch(function (err) {
+           if (isForbiddenError(err)) {
+-            self.opts.writeSourceCheckpoint = false;
++            globalThis.opts.writeSourceCheckpoint = false;
+             return true;
+           }
+           throw err;
+@@ -9488,14 +9488,14 @@ class CheckpointerInternal {
+   }
+ 
+   getCheckpoint() {
+-    var self = this;
++    var globalThis = this;
+ 
+-    if (!self.opts.writeSourceCheckpoint && !self.opts.writeTargetCheckpoint) {
++    if (!globalThis.opts.writeSourceCheckpoint && !globalThis.opts.writeTargetCheckpoint) {
+       return Promise.resolve(LOWEST_SEQ);
+     }
+ 
+-    if (self.opts && self.opts.writeSourceCheckpoint && !self.opts.writeTargetCheckpoint) {
+-      return self.src.get(self.id).then(function (sourceDoc) {
++    if (globalThis.opts && globalThis.opts.writeSourceCheckpoint && !globalThis.opts.writeTargetCheckpoint) {
++      return globalThis.src.get(globalThis.id).then(function (sourceDoc) {
+         return sourceDoc.last_seq || LOWEST_SEQ;
+       }).catch(function (err) {
+         /* istanbul ignore if */
+@@ -9506,12 +9506,12 @@ class CheckpointerInternal {
+       });
+     }
+ 
+-    return self.target.get(self.id).then(function (targetDoc) {
+-      if (self.opts && self.opts.writeTargetCheckpoint && !self.opts.writeSourceCheckpoint) {
++    return globalThis.target.get(globalThis.id).then(function (targetDoc) {
++      if (globalThis.opts && globalThis.opts.writeTargetCheckpoint && !globalThis.opts.writeSourceCheckpoint) {
+         return targetDoc.last_seq || LOWEST_SEQ;
+       }
+ 
+-      return self.src.get(self.id).then(function (sourceDoc) {
++      return globalThis.src.get(globalThis.id).then(function (sourceDoc) {
+         // Since we can't migrate an old version doc to a new one
+         // (no session id), we just go with the lowest seq in this case
+         /* istanbul ignore if */
+@@ -9533,14 +9533,14 @@ class CheckpointerInternal {
+         return LOWEST_SEQ;
+       }, function (err) {
+         if (err.status === 404 && targetDoc.last_seq) {
+-          return self.src.put({
+-            _id: self.id,
++          return globalThis.src.put({
++            _id: globalThis.id,
+             last_seq: LOWEST_SEQ
+           }).then(function () {
+             return LOWEST_SEQ;
+           }, function (err) {
+             if (isForbiddenError(err)) {
+-              self.opts.writeSourceCheckpoint = false;
++              globalThis.opts.writeSourceCheckpoint = false;
+               return targetDoc.last_seq;
+             }
+             /* istanbul ignore next */
+@@ -10562,14 +10562,14 @@ function replication(PouchDB) {
+ 
+   Object.defineProperty(PouchDB.prototype, 'replicate', {
+     get: function () {
+-      var self = this;
++      var globalThis = this;
+       if (typeof this.replicateMethods === 'undefined') {
+         this.replicateMethods = {
+           from: function (other, opts, callback) {
+-            return self.constructor.replicate(other, self, opts, callback);
++            return globalThis.constructor.replicate(other, globalThis, opts, callback);
+           },
+           to: function (other, opts, callback) {
+-            return self.constructor.replicate(self, other, opts, callback);
++            return globalThis.constructor.replicate(globalThis, other, opts, callback);
+           }
+         };
+       }

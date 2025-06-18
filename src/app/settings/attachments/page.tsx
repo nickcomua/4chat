@@ -64,6 +64,7 @@ const getFileIcon = (type: string) => {
 }
 
 export default function AttachmentsPage() {
+  return null // @todo
   const [attachments, setAttachments] = useState<Attachment[]>(sampleAttachments)
   const [maxFileSize, setMaxFileSize] = useState(10)
   const [allowedTypes, setAllowedTypes] = useState<string[]>([

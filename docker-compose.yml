@@ -1,93 +1,58 @@
 services:
-  couchdb-dev:
+  couchdb:
     image: couchdb:3.3
-    container_name: couchdb-dev
+    container_name: couchdb
     restart: unless-stopped
     ports:
       - "5984:5984"
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=admin
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     volumes:
-      # - couchdb-dev-data:/opt/couchdb/data
-      - ./docker/couchdb/dev/local.ini:/opt/couchdb/etc/local.d/local.ini
-    profiles:
-      - dev
+      - couchdb-dev-data:/opt/couchdb/data
+      - ./docker/couchdb/local.ini:/opt/couchdb/etc/local.d/local.ini
     networks:
-      - couchdb-network
-
-  couchdb-init-dev:
-    # A tiny image that contains curl
-    image: alpine/curl:latest
-    container_name: couchdb-init-dev
-    profiles:
-      - dev
-    networks:
-      - couchdb-network
-    # Pass credentials from the main service
+      - main-network
+  pgdb:
+    image: postgres
+    restart: always
+    shm_size: 128mb
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=admin
-      - COUCHDB_HOST=couchdb-dev
-    volumes:
-      # Mount the script we just created
-      - ./docker/couchdb/init.sh:/init.sh
-    # This ensures couchdb-dev is started first.
-    # Note: It does NOT wait for it to be ready. Our script handles that.
-    depends_on:
-      - couchdb-dev
-    # The command to run. It executes our script.
-    command: sh -c "apk add --no-cache netcat-openbsd && /init.sh"
-    # Optional: If the script fails, retry a few times.
-    restart: on-failure
-
-  couchdb-prod:
-    image: couchdb:3.3
-    container_name: couchdb-prod
-    restart: unless-stopped
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - main-network
     ports:
-      - "5985:5984"
+      - "5432:5432"
+  next:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: next
     environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-changeme}
-    volumes:
-      - couchdb-prod-data:/opt/couchdb/data
-      - ./docker/couchdb/prod/local.ini:/opt/couchdb/etc/local.d/local.ini
-    profiles:
-      - prod
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NEXT_PUBLIC_COUCHDB_URL=${NEXT_PUBLIC_COUCHDB_URL}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "3000:3000"
     networks:
-      - couchdb-network
-
-  couchdb-init-prod:
-    # A tiny image that contains curl
-    image: curlimages/curl:latest
-    container_name: couchdb-init-prod
-    profiles:
-      - prod
-    networks:
-      - couchdb-network
-    # Pass credentials from the main service
-    environment:
-      - COUCHDB_USER=${COUCHDB_USER:-admin}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-admin}
-    volumes:
-      # Mount the script we just created
-      - ./docker/couchdb/dev/init.sh:/init.sh
-    # This ensures couchdb-dev is started first.
-    # Note: It does NOT wait for it to be ready. Our script handles that.
+      - main-network
     depends_on:
-      - couchdb-dev
-    # The command to run. It executes our script.
-    command: sh -c "apk add --no-cache netcat-openbsd && /init.sh ${COUCHDB_USER} ${COUCHDB_PASSWORD} couchdb-prod"
-    # Optional: If the script fails, retry a few times.
-    restart: on-failure
+      - pgdb
+      - couchdb
+
+  
 
 volumes:
   couchdb-dev-data:
     driver: local
-  couchdb-prod-data:
-    driver: local
 
 networks:
-  couchdb-network:
+  main-network:
     driver: bridge

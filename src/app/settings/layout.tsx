@@ -11,6 +11,8 @@ import { useFind, usePouch } from "use-pouchdb"
 import { ChatSettings } from "@/lib/types/settings"
 import { Skeleton } from "@/components/ui/skeleton"
 import ThemeToggle from "@/components/layout/theme-toggle"
+import { signInOut } from "@/lib/auth/logout"
+import { Chat, ChatMessage } from "@/lib/types/chat"
 
 const settingsTabs = [
   { value: "account", label: "Account", path: "/settings/account" },
@@ -18,7 +20,7 @@ const settingsTabs = [
   { value: "history", label: "History & Sync", path: "/settings/history" },
   { value: "models", label: "Models", path: "/settings/models" },
   { value: "api-keys", label: "API Keys", path: "/settings/api-keys" },
-  { value: "attachments", label: "Attachments", path: "/settings/attachments" },
+  // { value: "attachments", label: "Attachments", path: "/settings/attachments" },
   { value: "contact", label: "Contact Us", path: "/settings/contact" },
 ]
 
@@ -29,7 +31,9 @@ export default function SettingsLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
-  const db = usePouch<ChatSettings>("profile")
+  const profileDb = usePouch<ChatSettings>("profile")
+  const messagesDb = usePouch<ChatMessage>("messages")
+  const chatsDb = usePouch<Chat>("chats") 
   const { docs: profiles } = useFind<ChatSettings>({
     db: "profile",
     selector: {
@@ -77,7 +81,15 @@ export default function SettingsLayout({
         </Link>
         <div className="flex flex-row items-center gap-2">
           <ThemeToggle />
-          <Button variant="ghost">Sign out</Button>
+          <form action={async (e) => {
+            await profileDb.destroy()
+            await messagesDb.destroy()
+            await chatsDb.destroy()
+            await signInOut()
+            router.push("/auth")
+          }}>
+            <Button variant="ghost" type="submit">Sign out</Button>
+          </form>
         </div>
       </header>
 

@@ -7,8 +7,9 @@ import { MarkdownRenderer } from "@/lib/services/marked"
 import { cn } from "@/lib/utils"
 import type { ClassValue } from "clsx"
 import { AiResponse } from "@effect/ai/AiResponse"
+import { ChatAssistantMessageError } from "@/lib/types/chat"
 
-export function UserMessage({ id, text, className }: { id: string, text: string, className?: ClassValue }) {
+export function UserMessage({ id, text, className, onRetry, onEdit }: { id: string, text: string, className?: ClassValue, onRetry?: () => void, onEdit?: () => void }) {
   const [isCopied, setIsCopied] = useState(false)
 
   const copyToClipboard = () => {
@@ -37,6 +38,7 @@ export function UserMessage({ id, text, className }: { id: string, text: string,
             data-action="retry"
             data-state="closed"
             type="button"
+            onClick={onRetry}
           >
             <div className="relative size-4">
               <RefreshCcw className="absolute inset-0" aria-hidden="true" />
@@ -47,6 +49,7 @@ export function UserMessage({ id, text, className }: { id: string, text: string,
             className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 text-xs h-8 w-8 rounded-lg p-0"
             aria-label="Edit message"
             data-state="closed"
+            onClick={onEdit}
           >
             <SquarePen className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -73,7 +76,7 @@ export function UserMessage({ id, text, className }: { id: string, text: string,
   )
 }
 
-export function AssistantMessage({ id, text, className }: { id: string, text: string, className?: ClassValue }) {
+export function AssistantMessage({ id, text, className, onRetry, errors }: { id: string, text: string, className?: ClassValue, onRetry?: () => void, errors?: ChatAssistantMessageError[] }) {
   const [isCopied, setIsCopied] = useState(false)
   // const stats = ai.parts.filter(part => part._tag === "FinishPart").map(part => part.usage).at(0) @todo
   // console.log(stats)
@@ -84,10 +87,18 @@ export function AssistantMessage({ id, text, className }: { id: string, text: st
     setTimeout(() => setIsCopied(false), 2000)
   }
 
-
   return (
     <div data-message-id={id} className={cn("flex justify-start", className)}>
       <div className="group relative w-full max-w-full break-words">
+        {errors && errors.length > 0 && (
+          <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            {errors.map((error, i) => (
+              <div key={error._id} className={cn(i > 0 && "mt-2")}>
+                {error.error}
+              </div>
+            ))}
+          </div>
+        )}
         <div
           role="article"
           aria-label="Assistant message"
@@ -115,7 +126,7 @@ export function AssistantMessage({ id, text, className }: { id: string, text: st
                   />
                 </div>
               </button>
-              <button
+              {/* <button
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 text-xs h-8 w-8 rounded-lg p-0"
                 aria-label="Branch off message"
                 data-state="closed"
@@ -128,22 +139,23 @@ export function AssistantMessage({ id, text, className }: { id: string, text: st
                     aria-hidden="true"
                   />
                 </div>
-              </button>
+              </button> */}
               <button
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 text-xs h-8 w-8 rounded-lg p-0"
                 aria-label="Retry message"
                 data-action="retry"
                 data-state="closed"
                 type="button"
+                onClick={onRetry}
               >
                 <div className="relative size-4">
                   <RefreshCcw className="absolute inset-0" aria-hidden="true" />
                   <span className="sr-only">Retry</span>
                 </div>
               </button>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span>Gemini 2.5 Flash</span>
-              </div>
+              {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <span>Gemini 2.5 Flash</span> @todo
+              </div> */}
             </div>
           </div>
         </div>

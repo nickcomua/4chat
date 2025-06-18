@@ -65,7 +65,6 @@ export default function ModelsPage() {
     ...model,
     enabled: profile.modelSettings.favoriteModels.includes(model.id)
   })) : initialModels
-  console.log("models", models)
 
   // useEffect(() => {
   //   if (profile?.modelSettings) {

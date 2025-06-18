@@ -1,9 +1,9 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Search, LogIn, X, Pin, PanelLeft } from "lucide-react"
+import { Search, LogIn, X, Pin, PanelLeft, Loader2 } from "lucide-react"
 import { Chat, ChatMessage } from "@/lib/types/chat"
 import { usePouch, useAllDocs, useFind } from "use-pouchdb"
 import { ChatSettings } from "@/lib/types/settings"
@@ -31,10 +31,28 @@ interface ChatItemProps {
   isActive?: boolean
   onPin?: () => void
   onDelete?: () => void
+  onEdit?: (newName: string) => void | Promise<void>
 }
 
-function ChatItem({ chat, isActive, onPin, onDelete }: ChatItemProps) {
+function ChatItem({ chat, isActive, onPin, onDelete, onEdit }: ChatItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(chat.name)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleEdit = async () => {
+    if (editValue.trim() && editValue !== chat.name) {
+      await onEdit?.(editValue)
+    }
+    setIsEditing(false)
+  }
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
 
   return (
     <>
@@ -74,47 +92,89 @@ function ChatItem({ chat, isActive, onPin, onDelete }: ChatItemProps) {
                     <Pin className="size-3 mr-1 text-muted-foreground" />
                   )}
                   <input
+                    ref={inputRef}
                     aria-label="Thread title"
                     aria-describedby="thread-title-hint"
-                    aria-readonly="true"
-                    readOnly
-                    tabIndex={-1}
-                    className="hover:truncate-none h-full w-full rounded bg-transparent px-1 py-1 text-sm text-muted-foreground outline-none pointer-events-none cursor-pointer overflow-hidden truncate"
+                    readOnly={!isEditing}
+                    tabIndex={isEditing ? 0 : -1}
+                    className={`h-full w-full rounded bg-transparent px-1 py-1 text-sm text-muted-foreground outline-none ${isEditing ? 'cursor-text pointer-events-auto ring-1 ring-ring' : 'pointer-events-none cursor-pointer overflow-hidden truncate'}`}
                     title={chat.name}
                     type="text"
-                    value={chat.name}
+                    value={isEditing ? editValue : chat.name}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleEdit()
+                      } else if (e.key === 'Escape') {
+                        setIsEditing(false)
+                        setEditValue(chat.name)
+                      }
+                    }}
+                    onBlur={handleEdit}
                   />
                 </div>
               </button>
-              <div className="pointer-events-auto absolute -right-1 bottom-0 top-0 z-50 flex translate-x-full items-center justify-end text-muted-foreground transition-transform group-hover/link:translate-x-0 group-hover/link:bg-sidebar-accent">
-                <div className="pointer-events-none absolute bottom-0 right-[100%] top-0 h-12 w-8 bg-gradient-to-l from-sidebar-accent to-transparent opacity-0 group-hover/link:opacity-100"></div>
-                <button
-                  className={`rounded-md p-1.5 hover:bg-muted/40 ${chat.pinned ? 'text-primary' : ''}`}
-                  tabIndex={-1}
-                  data-action="pin-thread"
-                  aria-label={chat.pinned ? "Unpin thread" : "Pin thread"}
-                  data-state="closed"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    onPin?.()
-                  }}
-                >
-                  <Pin className="size-4" />
-                </button>
-                <button
-                  className="rounded-md p-1.5 hover:bg-destructive/50 hover:text-destructive-foreground"
-                  tabIndex={-1}
-                  data-action="thread-delete"
-                  aria-label="Delete thread"
-                  data-state="closed"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setShowDeleteDialog(true)
-                  }}
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
+              {chat.status === "generating" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) :
+                <div className="pointer-events-auto absolute -right-1 bottom-0 top-0 z-50 flex translate-x-full items-center justify-end text-muted-foreground transition-transform group-hover/link:translate-x-0 group-hover/link:bg-sidebar-accent">
+                  <div className="pointer-events-none absolute bottom-0 right-[100%] top-0 h-12 w-8 bg-gradient-to-l from-sidebar-accent to-transparent opacity-0 group-hover/link:opacity-100"></div>
+                  <button
+                    className={`rounded-md p-1.5 hover:bg-muted/40 ${isEditing ? 'text-primary' : ''}`}
+                    tabIndex={-1}
+                    data-action="pin-thread"
+                    aria-label={chat.pinned ? "Unpin thread" : "Pin thread"}
+                    data-state="closed"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      onPin?.()
+                    }}
+                  >
+                    <Pin className="size-4" />
+                  </button>
+                  <button
+                    className={`rounded-md p-1.5 hover:bg-muted/40 ${isEditing ? 'text-primary' : ''}`}
+                    tabIndex={-1}
+                    data-action="thread-edit"
+                    aria-label="Edit thread"
+                    data-state="closed"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsEditing(true)
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="size-4"
+                    >
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                      <path d="m15 5 4 4" />
+                    </svg>
+                  </button>
+                  <button
+                    className="rounded-md p-1.5 hover:bg-destructive/50 hover:text-destructive-foreground"
+                    tabIndex={-1}
+                    data-action="thread-delete"
+                    aria-label="Delete thread"
+                    data-state="closed"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setShowDeleteDialog(true)
+                    }}
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              }
             </div>
           </Link>
         </li>
@@ -123,11 +183,11 @@ function ChatItem({ chat, isActive, onPin, onDelete }: ChatItemProps) {
   )
 }
 
-export default function Sidebar() {
+export default function Sidebar({ chatId }: { chatId: string }) {
   const inputeRef = useRef<HTMLInputElement>(null)
   const chatsDb: PouchDB.Database<Chat> = usePouch("chats")
   const messagesDb: PouchDB.Database<ChatMessage> = usePouch("messages")
-  const { id: chatId }: { id: string | undefined } = useParams()
+  // const { id: chatId }: { id: string | undefined } = useParams()
   const { docs: chats } = useFind<Chat>({
     db: "chats",
     selector: {
@@ -148,6 +208,7 @@ export default function Sidebar() {
   const profile = profiles?.[0]
   const [isOpen, setIsOpen] = useState(true)
   const [searchValue, setSearchValue] = useState("")
+  const [editingChatId, setEditingChatId] = useState<string | null>(null)
 
   const now = Date.now()
   const oneDay = 24 * 60 * 60 * 1000
@@ -197,7 +258,7 @@ export default function Sidebar() {
 
   return isOpen ? <>
     <div className="pointer-events-auto fixed left-2 z-150 flex flex-row gap-0.5 p-1 top-safe-offset-2">
-      <div className="duration-250 pointer-events-none absolute inset-0 right-auto -z-10 w-10 rounded-md bg-transparent backdrop-blur-sm transition-[background-color,width] delay-0 max-sm:delay-125 max-sm:duration-125 max-sm:w-[6.75rem] max-sm:bg-sidebar/50"></div>
+      {/* <div className="duration-250 pointer-events-none absolute inset-0 right-auto -z-10 w-10 rounded-md bg-transparent backdrop-blur-sm transition-[background-color,width] delay-0 max-sm:delay-125 max-sm:duration-125 max-sm:w-[6.75rem] max-sm:bg-sidebar/50"></div> */}
       <button
         type="button"
         className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 z-10 h-8 w-8 text-muted-foreground"
@@ -208,10 +269,10 @@ export default function Sidebar() {
         <span className="sr-only">Toggle Sidebar</span>
       </button>
     </div>
-    <div className="absolute left-64 inset-x-3 top-0 z-10 box-content overflow-hidden border-b border-chat-border bg-gradient-noise-top/80 backdrop-blur-md transition-[transform,border] ease-snappy blur-fallback:bg-gradient-noise-top max-sm:hidden sm:h-3.5">
+    <div className="absolute left-64 inset-x-3 top-0 z-10 box-content overflow-hidden border-b border-chat-border bg-sidebar/50 backdrop-blur-md transition-[transform,border] ease-snappy blur-fallback:bg-sidebar/50 max-sm:hidden sm:h-3.5">
       <div className="absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-gradient-noise-top to-transparent blur-fallback:hidden"></div>
       <div className="absolute right-24 top-0 h-full w-8 bg-gradient-to-l from-gradient-noise-top to-transparent blur-fallback:hidden"></div>
-      <div className="absolute right-0 top-0 h-full w-24 bg-gradient-noise-top blur-fallback:hidden"></div>
+      {/* <div className="absolute right-0 top-0 h-full w-24 bg-sidebar/50 blur-fallback:hidden"></div> */}
     </div>
     <div
       className={`group peer ${isOpen ? "block" : "hidden"} text-sidebar-foreground md:block`}
@@ -241,7 +302,7 @@ export default function Sidebar() {
             </h1>
             <div className="px-1">
               <Link
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border-reflect button-reflect rounded-lg bg-[rgb(162,59,103)] p-2 font-semibold text-primary-foreground shadow hover:bg-[#d56698] active:bg-[rgb(162,59,103)] disabled:hover:bg-[rgb(162,59,103)] disabled:active:bg-[rgb(162,59,103)] dark:bg-primary/20 dark:hover:bg-pink-800/70 dark:active:bg-pink-800/40 disabled:dark:hover:bg-primary/20 disabled:dark:active:bg-primary/20 h-9 px-4 py-2 w-full select-none text-sm"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border-reflect button-reflect bg-primary p-2 font-semibold text-primary-foreground shadow hover:bg-primary/90 active:bg-primary/80 disabled:hover:bg-primary disabled:active:bg-primary dark:bg-[oklch(0.707_0.1406_90.77)] dark:text-[oklch(0.2_0.0102_242.05)] dark:hover:bg-[oklch(0.607_0.1406_90.77)] dark:active:bg-[oklch(0.507_0.1406_90.77)] disabled:dark:hover:bg-[oklch(0.707_0.1406_90.77)] disabled:dark:active:bg-[oklch(0.707_0.1406_90.77)] h-9 px-4 py-2 w-full select-none text-sm"
                 href="/"
               >
                 <span className="w-full select-none text-center" data-state="closed">
@@ -307,6 +368,18 @@ export default function Sidebar() {
                           } catch (error) {
                             console.error('Failed to delete chat:', error)
                             toast.error('Failed to delete chat')
+                          }
+                        }}
+                        onEdit={async (newName) => {
+                          try {
+                            const doc = await chatsDb.get(chat._id)
+                            await chatsDb.put({
+                              ...doc,
+                              name: newName
+                            })
+                          } catch (error) {
+                            console.error('Failed to edit chat:', error)
+                            toast.error('Failed to edit chat')
                           }
                         }}
                       />

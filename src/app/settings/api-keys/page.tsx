@@ -21,54 +21,54 @@ interface ApiKeyProvider {
 }
 
 const providers: ApiKeyProvider[] = [
-  {
-    id: "openai",
-    name: "OpenAI",
-    placeholder: "sk-...",
-    consoleUrl: "https://platform.openai.com/api-keys",
-    consoleName: "OpenAI Platform",
-    models: ["GPT-4", "GPT-3.5-turbo"],
-    async validate(key: string) {
-      const headers = { 'Authorization': `Bearer ${key}` }
-      const res = await fetch("https://api.openai.com/v1/models", { method: 'GET', headers })
-      return res.ok
-    }
-  },
-  {
-    id: "anthropic",
-    name: "Anthropic",
-    placeholder: "sk-ant-...",
-    consoleUrl: "https://console.anthropic.com/settings/keys",
-    consoleName: "Anthropic Console",
-    models: ["Claude 3 Opus", "Claude 3 Sonnet", "Claude 3 Haiku"],
-    async validate(key: string) {
-      const headers = {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'Content-Type': 'application/json'
-      }
-      // POST is required for Anthropic, but we can send a minimal body
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ model: 'claude-3-sonnet-2023-06-01', max_tokens: 1, messages: [{ role: 'user', content: 'Hello' }] })
-      })
-      return res.ok
-    }
-  },
-  {
-    id: "google",
-    name: "Google AI",
-    placeholder: "AI...",
-    consoleUrl: "https://aistudio.google.com/app/apikey",
-    consoleName: "Google AI Studio",
-    models: ["Gemini Pro", "Gemini Pro Vision"],
-    async validate(key: string) {
-      const headers = { 'x-goog-api-key': key }
-      const res = await fetch("https://generativelanguage.googleapis.com/v1/models" + `?key=${key}`, { method: 'GET', headers })
-      return res.ok
-    }
-  },
+  // {
+  //   id: "openai",
+  //   name: "OpenAI",
+  //   placeholder: "sk-...",
+  //   consoleUrl: "https://platform.openai.com/api-keys",
+  //   consoleName: "OpenAI Platform",
+  //   models: ["GPT-4", "GPT-3.5-turbo"],
+  //   async validate(key: string) {
+  //     const headers = { 'Authorization': `Bearer ${key}` }
+  //     const res = await fetch("https://api.openai.com/v1/models", { method: 'GET', headers })
+  //     return res.ok
+  //   }
+  // },
+  // {
+  //   id: "anthropic",
+  //   name: "Anthropic",
+  //   placeholder: "sk-ant-...",
+  //   consoleUrl: "https://console.anthropic.com/settings/keys",
+  //   consoleName: "Anthropic Console",
+  //   models: ["Claude 3 Opus", "Claude 3 Sonnet", "Claude 3 Haiku"],
+  //   async validate(key: string) {
+  //     const headers = {
+  //       'x-api-key': key,
+  //       'anthropic-version': '2023-06-01',
+  //       'Content-Type': 'application/json'
+  //     }
+  //     // POST is required for Anthropic, but we can send a minimal body
+  //     const res = await fetch("https://api.anthropic.com/v1/messages", {
+  //       method: 'POST',
+  //       headers,
+  //       body: JSON.stringify({ model: 'claude-3-sonnet-2023-06-01', max_tokens: 1, messages: [{ role: 'user', content: 'Hello' }] })
+  //     })
+  //     return res.ok
+  //   }
+  // },
+  // {
+  //   id: "google",
+  //   name: "Google AI",
+  //   placeholder: "AI...",
+  //   consoleUrl: "https://aistudio.google.com/app/apikey",
+  //   consoleName: "Google AI Studio",
+  //   models: ["Gemini Pro", "Gemini Pro Vision"],
+  //   async validate(key: string) {
+  //     const headers = { 'x-goog-api-key': key }
+  //     const res = await fetch("https://generativelanguage.googleapis.com/v1/models" + `?key=${key}`, { method: 'GET', headers })
+  //     return res.ok
+  //   }
+  // },
   {
     id: "openrouter",
     name: "OpenRouter",

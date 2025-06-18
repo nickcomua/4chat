@@ -32,6 +32,7 @@ export const CouchDBSessionProvider: React.FC<CouchDBSessionProviderProps> = ({
     refreshIntervalMs = 300000 // 5 minutes
 }) => {
     const sessionData = useCouchDBSession(autoRefresh, refreshIntervalMs);
+    
     return (
         <CouchDBSessionContext.Provider value={sessionData}>
             {children}

@@ -2,10 +2,13 @@
 const nextConfig = {
   // compress: false,
   sassOptions: {
-    additionalData: `$var: red;`,
+    // additionalData: `$var: red;`,
   },
+  output: 'standalone',
   experimental: {
     reactCompiler: true,
+    // serverComponentsHmrCache: false,
+    nodeMiddleware: true,
   },
   images: {
     remotePatterns: [
@@ -16,7 +19,7 @@ const nextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['leveldown'],
+  // serverExternalPackages: ['pouchdb'],
 }
 
 export default nextConfig

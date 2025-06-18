@@ -1,15 +1,21 @@
 import React, { useEffect, useRef, useState } from "react"
-import type { ChatAssistantMessage, ChatAssistantMessageChunk, ChatMessage, ChatUserMessage } from "@/lib/types/chat"
+import type { ChatAssistantMessage, ChatAssistantMessageChunk, ChatAssistantMessageError, ChatMessage, ChatUserMessage } from "@/lib/types/chat"
 import { UserMessage, AssistantMessage } from "./message"
 import WelcomeScreen from "./welcome-screen"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, LoaderCircle } from "lucide-react"
 import { AiResponse } from "@effect/ai"
 import { mergeAiResponse } from "@/lib/ai/common"
+import { Schema } from "effect"
+import { cn } from "@/lib/utils"
 
 
-export default function MessageList({ messages, chunks }: {
+export default function MessageList({ messages, chunks, errors, onRetry, onEdit, editMode }: {
   messages: (ChatUserMessage | ChatAssistantMessage)[]
   chunks: ChatAssistantMessageChunk[]
+  errors: ChatAssistantMessageError[]
+  onRetry?: (messageId: string) => void
+  onEdit?: (messageId: string) => void
+  editMode?: number | null
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
@@ -28,7 +34,6 @@ export default function MessageList({ messages, chunks }: {
     const container = scrollContainerRef.current
     if (!container) return
     // setTimeout(() => {
-    console.log("scrollToBottom", container.scrollHeight)
     container.scrollTo({
       top: container.scrollHeight,
       behavior: "instant"
@@ -45,22 +50,14 @@ export default function MessageList({ messages, chunks }: {
   }, [])
 
   useEffect(() => {
-    // Check if a new message was added
-    // if (messages.length > prevMessagesLengthRef.current) {
-    const lastMessage = messages.at(-1)
-    // If it's a user message, scroll to top
-    if (lastMessage?.type === "ChatUserMessage" && chunks.length === 0) {
-      console.log("scrollToBottom", lastMessage?.type, chunks.length)
-      console.log("scrollToBottom", scrollContainerRef.current, document.querySelector(`[data-message-id='${lastMessage._id}']`))
+    if (messages.at(-1)?.type === "ChatUserMessage" && chunks.length === 0) {
       requestAnimationFrame(() => {
         scrollContainerRef.current?.scrollTo({
-          top: scrollContainerRef.current.scrollHeight - window.innerHeight + document.querySelector(`[data-message-id='${lastMessage._id}']`)!.getBoundingClientRect().height,
+          top: scrollContainerRef.current.scrollHeight,
           behavior: "instant"
         })
       })
     }
-    // }
-    // prevMessagesLengthRef.current = messages.length
   }, [messages, chunks])
 
   return (
@@ -73,27 +70,41 @@ export default function MessageList({ messages, chunks }: {
         role="log"
         aria-label="Chat messages"
         aria-live="polite"
-        className="mx-auto flex w-full max-w-3xl flex-col space-y-12 px-4 pb-10 pt-safe-offset-10"
+        className={cn(
+          "mx-auto flex w-full max-w-3xl flex-col space-y-12 px-4 pb-10 pt-safe-offset-10",
+          editMode !== null && "opacity-50"
+        )}
       >
         {messages.map((message, i) =>
           message.type === "ChatUserMessage" ?
-            <UserMessage key={message._id} id={message._id} text={message.ai.parts.filter(part => part._tag === "TextPart").map(part => part.text).join("")} /> :
+            <UserMessage key={message._id}
+              id={message._id}
+              text={message.ai.parts.filter(part => part._tag === "TextPart").map(part => part.text).join("")}
+              onRetry={() => onRetry?.(message._id)}
+              onEdit={() => onEdit?.(message._id)}
+            /> :
             <AssistantMessage
               key={message._id} id={message._id}
-              text={mergeAiResponse(AiResponse.empty, message.ai).text}
+              errors={errors.filter(error => error._id.split("_")[2] === message._id.split("_")[2])}
+              text={mergeAiResponse(AiResponse.empty, Schema.decodeSync(AiResponse.AiResponse)(message.ai)).text}
               className={`${i === messages.length - 1 ? "min-h-[calc(100vh-20rem)]" : ""}`}
+              onRetry={() => {
+                const [chatId, , index] = message._id.split("_")
+                onRetry?.(`${chatId}_message_${Number(index) - 1}`)
+              }}
             />
         )}
-        {(chunks.length > 0 || messages.at(-1)?.type === "ChatUserMessage") &&
-          <AssistantMessage className="min-h-[calc(100vh-20rem)]"
-            key={chunks?.[0]?._id?.split("_").slice(0, 2).join("_") ?? "chunks"}
-            id={chunks?.[0]?._id?.split("_").slice(0, 2).join("_") ?? "chunks"}
-            text={chunks.reduce((aiResponse, message) => mergeAiResponse(aiResponse, message.ai), AiResponse.empty).text} />
+        {(messages.at(-1)?.type === "ChatUserMessage" && chunks.length === 0 && editMode === null) &&
+          <div className="min-h-[calc(100vh-20rem)]" >
+            <LoaderCircle className="animate-spin" />
+          </div>
         }
-        {/* {
-          messages.at(-1)?.type === "ChatUserMessage" &&
-          <div key={`${messages.at(-1)?._id.split("_")[0]}_${Number(messages.at(-1)?._id.split("_")[1]) + 1}`} className="relative w-full max-w-full h-screen" />
-        } */}
+        {chunks.length > 0 &&
+          <AssistantMessage className="min-h-[calc(100vh-20rem)]"
+            key={`${chunks?.[0]?._id?.split("_")[0]}_message_${chunks?.[0]?._id?.split("_")[2]}`}
+            id={`${chunks?.[0]?._id?.split("_")[0]}_message_${chunks?.[0]?._id?.split("_")[2]}`}
+            text={chunks.reduce((aiResponse, message) => mergeAiResponse(aiResponse, Schema.decodeSync(AiResponse.AiResponse)(message.ai)), AiResponse.empty).text} />
+        }
       </div>
       {showScrollButton && (
         <div className="pointer-events-none left-60 fixed inset-x-0 bottom-36 z-10 flex justify-center">

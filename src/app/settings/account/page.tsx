@@ -131,7 +131,7 @@ export default function AccountPage() {
       </div>
 
       {/* Danger Zone */}
-      <div className="!mt-20">
+      {/* <div className="!mt-20">
         <div className="w-fit space-y-2 border-0 border-muted-foreground/10">
           <h2 className="text-2xl font-bold">Danger Zone</h2>
           <div className="space-y-6">
@@ -150,7 +150,7 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }

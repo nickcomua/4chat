@@ -103,10 +103,10 @@ export default function CustomizationTab() {
     <div className="space-y-12">
       {/* Personal Preferences */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Customize T3 Chat</h2>
+        <h2 className="text-2xl font-bold">Customize 4Chat</h2>
         <div className="grid gap-6 py-2">
           <div className="relative grid gap-2">
-            <label className="text-base font-medium">What should T3 Chat call you?</label>
+            <label className="text-base font-medium">What should 4Chat call you?</label>
             {profile?.personalPreferences ? (
               <>
                 <Input
@@ -146,7 +146,7 @@ export default function CustomizationTab() {
           <div className="grid gap-2">
             <div className="flex items-center gap-2">
               <label className="text-base font-medium">
-                What traits should T3 Chat have?
+                What traits should 4Chat have?
                 <span className="ml-2 text-xs font-normal text-muted-foreground">
                   (up to 50, max 100 chars each)
                 </span>
@@ -201,7 +201,7 @@ export default function CustomizationTab() {
           </div>
 
           <div className="relative grid gap-2">
-            <label className="text-base font-medium">Anything else T3 Chat should know about you?</label>
+            <label className="text-base font-medium">Anything else 4Chat should know about you?</label>
             {profile?.personalPreferences ? (
               <>
                 <Textarea
@@ -219,44 +219,6 @@ export default function CustomizationTab() {
               <Skeleton className="h-24 w-full" />
             )}
           </div>
-
-          <div className="flex flex-row items-center gap-2 justify-end">
-            <Button
-              onClick={savePreferences}
-              disabled={isSaving || (!name && !occupation && !additionalInfo) || preferencesEquivalence({...profile,lastUpdated: ""}, {...updatedProfile,lastUpdated: "" })}
-            >
-              Save Preferences
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Visual Options */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Visual Options</h2>
-        <div className="space-y-6 py-2">
-          <div className="flex items-center justify-between gap-x-1">
-            <div className="space-y-0.5">
-              <label className="font-medium text-base">Theme</label>
-              <p className="text-sm text-muted-foreground">
-                Choose your preferred theme appearance.
-              </p>
-            </div>
-            {profile?.visualOptions ? (
-              <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
-                className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            ) : (
-              <Skeleton className="h-10 w-24" />
-            )}
-          </div>
-
           <div className="flex items-center justify-between gap-x-1">
             <div className="space-y-0.5">
               <label className="font-medium text-base">Hide Personal Information</label>
@@ -268,72 +230,13 @@ export default function CustomizationTab() {
               <Skeleton className="h-6 w-11" />
             )}
           </div>
-
-          <div className="flex items-center justify-between gap-x-1">
-            <div className="space-y-0.5">
-              <label className="font-medium text-base">Disable Thematic Breaks</label>
-              <p className="text-sm text-muted-foreground">
-                Hides horizontal lines in chat messages. (Some browsers have trouble rendering these, turn off
-                if you have bugs with duplicated lines)
-              </p>
-            </div>
-            {profile?.visualOptions ? (
-              <Switch checked={disableThematicBreaks} onCheckedChange={setDisableThematicBreaks} />
-            ) : (
-              <Skeleton className="h-6 w-11" />
-            )}
-          </div>
-
-          <div className="flex items-center justify-between gap-x-1">
-            <div className="space-y-0.5">
-              <label className="font-medium text-base">Stats for Nerds</label>
-              <p className="text-sm text-muted-foreground">
-                Enables more insights into message stats including tokens per second, time to first token, and
-                estimated tokens in the message.
-              </p>
-            </div>
-            {profile?.visualOptions ? (
-              <Switch checked={statsForNerds} onCheckedChange={setStatsForNerds} />
-            ) : (
-              <Skeleton className="h-6 w-11" />
-            )}
-          </div>
-
-          {/* Save Visual Options */}
-          <div className="flex justify-end">
-            <Button onClick={savePreferences} disabled={isSaving || preferencesEquivalence({...profile,lastUpdated: ""}, {...updatedProfile,lastUpdated: "" })}>
-              Save Visual Options
+          <div className="flex flex-row items-center gap-2 justify-end">
+            <Button
+              onClick={savePreferences}
+              disabled={isSaving || preferencesEquivalence({...profile,lastUpdated: ""}, {...updatedProfile,lastUpdated: "" })}
+            >
+              Save Preferences
             </Button>
-          </div>
-
-          {/* Font Preview */}
-          <div className="space-y-4">
-            <h3 className="text-base font-medium">Fonts Preview</h3>
-            <div className="rounded-lg border border-dashed border-input p-4">
-              <div className="prose prose-pink max-w-none dark:prose-invert prose-pre:m-0 prose-pre:bg-transparent prose-pre:p-0">
-                <div className="flex justify-end">
-                  <div className="group relative inline-block max-w-[80%] break-words rounded-xl border border-secondary/50 bg-secondary/50 px-4 py-3 text-left">
-                    Can you write me a simple hello world program?
-                  </div>
-                </div>
-                <div className="mb-2 mt-4">
-                  <div className="max-w-[80%]">Sure, here you go:</div>
-                </div>
-                <div className="relative flex w-full flex-col pt-9">
-                  <div className="absolute inset-x-0 top-0 flex h-9 items-center rounded-t bg-secondary px-4 py-2 text-sm text-secondary-foreground">
-                    <span className="font-mono">typescript</span>
-                  </div>
-                  <div className="bg-chat-accent text-sm font-[450] text-secondary-foreground rounded-b border">
-                    <pre className="p-4 overflow-auto">
-                      <code>{`function greet(name: string) {
-  console.log(\`Hello, \${name}!\`);
-  return true;
-}`}</code>
-                    </pre>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
