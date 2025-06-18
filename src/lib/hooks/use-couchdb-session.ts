@@ -39,10 +39,12 @@ export const useCouchDBSession = (
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include'
                 // body: JSON.stringify({ authUserId: authSession.user.id })
             });
 
             if (response.ok) {
+                
                 const data = await response.json();
                 setIsSessionValid(true);
                 setSessionData({
