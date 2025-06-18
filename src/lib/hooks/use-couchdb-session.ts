@@ -44,8 +44,8 @@ export const useCouchDBSession = (
             });
 
             if (response.ok) {
-                
                 const data = await response.json();
+                document.cookie = `AuthSession=${data.sessionToken}; path=/; domain=${new URL(couchdbUrlWeb).hostname}; SameSite=Lax; Max-Age=600`;
                 setIsSessionValid(true);
                 setSessionData({
                     username: data.userInfo.name,

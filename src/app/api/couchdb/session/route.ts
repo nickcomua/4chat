@@ -3,7 +3,7 @@ import { Effect } from 'effect';
 import { generateCouchDBSession } from '@/lib/db/couchdb-session';
 import { auth } from '@/lib/auth/auth';
 import { runNode } from '@/lib/services/node';
-
+import { couchdbUrlWeb } from '@/lib/db/common';
 // POST - Create new CouchDB session
 export function POST(request: NextRequest) {
     return Effect.gen(function* () {
@@ -39,6 +39,7 @@ export function POST(request: NextRequest) {
         response.cookies.set('AuthSession', result.sessionToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
+            domain: new URL(couchdbUrlWeb).hostname,
             sameSite: 'lax',
             maxAge: 600,
             path: '/'
