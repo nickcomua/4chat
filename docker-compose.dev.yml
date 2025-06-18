@@ -1,0 +1,35 @@
+services:
+  couchdb:
+    image: couchdb:3.3
+    container_name: couchdb
+    restart: unless-stopped
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - couchdb-dev-data:/opt/couchdb/data
+      - ./docker/couchdb/local.ini:/opt/couchdb/etc/local.d/local.ini
+    networks:
+      - main-network
+  pgdb:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - main-network
+    ports:
+      - "5432:5432"
+
+  
+
+volumes:
+  couchdb-dev-data:
+    driver: local
+
+networks:
+  main-network:
+    driver: bridge

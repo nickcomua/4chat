@@ -49,19 +49,23 @@ This is my submission for the [T3 ChatCloneathon](https://cloneathon.t3.chat/) c
 
 ### Prerequisites
 
-[To be filled with requirements]
+Create `.env.local` file with this params
+```
 
-### Installation
+```
 
-[To be filled with setup steps]
 
 ## Development
 
-[To be filled with development instructions]
+```
+docker-compose --env-file .env.local -f docker-compose.dev.yml up
+pnpm i
+pnpm dev
+```
 
 ## Deployment
 
-[To be filled with deployment instructions]
+docker-compose --env-file .env.local up
 
 ## Competition Rules Compliance
 
@@ -70,10 +74,6 @@ This is my submission for the [T3 ChatCloneathon](https://cloneathon.t3.chat/) c
 - [ ] Team size within limit (≤ 4 people)
 - [ ] Code of Conduct compliant
 - [ ] Content usage acknowledgment
-
-## Team
-
-[To be filled with team information]
 
 ## License
 
