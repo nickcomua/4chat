@@ -1,5 +1,5 @@
 import { Moon, Sun } from "lucide-react"
-import React from "react"
+import React, { useEffect } from "react"
 import { toast } from "sonner"
 
 export default function ThemeToggle() {
@@ -14,13 +14,17 @@ export default function ThemeToggle() {
   //     localStorage.setItem("theme", "dark")
   //   }
   // }
+  useEffect(() => {
+    document?.documentElement.classList.add("dark")
+    localStorage?.setItem("theme", "dark")
+  }, [])
 
   return (
     <button
       className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-muted/40 hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-foreground/50 group relative size-8"
       tabIndex={-1}
       data-state="closed"
-      onClick={()=>{
+      onClick={() => {
         toast.info("We don't have a light mode.\n Install the BrightReader extension to get it.")
       }}
     >
