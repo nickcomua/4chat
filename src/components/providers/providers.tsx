@@ -118,7 +118,7 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <CouchDBSessionProvider>
       <DbsProvider>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {children}
           <Toaster />
         </ThemeProvider>
