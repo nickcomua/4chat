@@ -220,10 +220,10 @@ const SendMessageWorkflowLayer = SendMessageWorkflow.toLayer(
                             _deleted: true
                         }) as unknown as ChatAssistantMessage)])
                 )
-                yield* putDocument(getChatDb(sessionToken, payload.userId), { ...payload.chat, status: "active", _rev: chatRes }).pipe(
+                yield* putDocument(getChatDb(sessionToken, payload.userId), { ...payload.chat, status: "active", _rev: chatRes, createdAt: +new Date() }).pipe(
                     Effect.catchAll(Effect.fn(function* (error) {
                         const chat = yield* Effect.promise(() => getChatDb(sessionToken, payload.userId).get(payload.chat._id))
-                        return yield* putDocument(getChatDb(sessionToken, payload.userId), { ...chat, status: "active" })
+                        return yield* putDocument(getChatDb(sessionToken, payload.userId), { ...chat, status: "active", createdAt: +new Date() })
                     })),
                     Effect.mapError(error => new CleanupError({
                         message: "Error in Cleanup " + error?.toString?.()
