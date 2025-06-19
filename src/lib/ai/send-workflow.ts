@@ -116,7 +116,8 @@ const SendMessageWorkflowLayer = SendMessageWorkflow.toLayer(
             error: Schema.Union(PouchDBPutError, DocumentConflictError, InvalidDocumentError),
             success: Schema.String,
             execute: Effect.gen(function* () {
-                const chat = yield* putDocument(getChatDb(sessionToken, payload.userId), { ...payload.chat, status: "generating" })
+                const chat = yield* putDocument(getChatDb(sessionToken, payload.userId),
+                    { ...payload.chat, status: "generating", createdAt: +new Date() })
                 return chat.rev
             })
         }).pipe(
