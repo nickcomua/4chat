@@ -140,24 +140,23 @@ const SendMessageWorkflowLayer = SendMessageWorkflow.toLayer(
                             parts: message.ai.parts.flatMap((part) => part._tag === "TextPart" ? [TextPart.make({ text: part.text })] : [])
                         })
                 ))
-                const chankCount = yield* Ref.make(0)
                 yield* AiLanguageModel.streamText({
                     system: generateSystemPrompt(payload.profile.personalPreferences),
                     prompt
                 }).pipe(
-                    Stream.runForEach(Effect.fn(function* (chunk) {
-                        const chunkMessage = Schema.encodeSync(ChatMessage)({
-                            _id: `${payload.chat._id}_chank_${payload.messages.length}_${yield* chankCount.get}`,
+                    Stream.runFoldEffect(0, Effect.fn(function* (id, chunk) {
+                        const chunkMessage = Schema.encodeSync(ChatAssistantMessageChunk)({
+                            _id: `${payload.chat._id}_chank_${payload.messages.length}_${id}_${+new Date()}}`,
                             type: "ChatAssistantMessageChunk",
                             ai: chunk
                         })
-                        yield* Ref.update(chankCount, (n) => n + 1)
                         yield* putDocument(messageDb, chunkMessage)
                             .pipe(Effect.retry({
                                 while: (error) => error instanceof PouchDBPutError,
                                 times: 3,
                                 schedule: Schedule.exponential(1000)
                             }))
+                        return id + 1
                     }))
                 )
             })
