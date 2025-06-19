@@ -202,8 +202,10 @@ const SendMessageWorkflowLayer = SendMessageWorkflow.toLayer(
                 //         message: "Chat is not active"
                 //     }))
                 // }
-                const aiResponse = chnaks.filter(chunk => chunk.id.split('_')[2] === payload.messages.length.toString()).reduce((acc, chunk) => mergeAiResponse(acc, Schema.decodeSync(AiResponse.AiResponse)(chunk.doc!.ai)),
-                    AiResponse.empty)
+                const aiResponse = chnaks.filter(chunk => chunk.id.split('_')[2] === payload.messages.length.toString())
+                    .toSorted((a, b) => Number(a.id.split("_")[3]) - Number(b.id.split("_")[3]))
+                    .reduce((acc, chunk) => mergeAiResponse(acc, Schema.decodeSync(AiResponse.AiResponse)(chunk.doc!.ai)),
+                        AiResponse.empty)
                 // const chunkIds = message.chunks
                 const assistantMessage = Schema.encodeSync(ChatMessage)({
                     _id: `${payload.chat._id}_message_${payload.messages.length}`,
