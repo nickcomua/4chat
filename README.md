@@ -92,11 +92,11 @@ docker-compose --env-file .env.local up
 
 ## Competition Rules Compliance
 
-- [ ] Open Source with permissive license (MIT/Apache/BSD)
-- [ ] GitHub repository public
-- [ ] Team size within limit (≤ 4 people)
-- [ ] Code of Conduct compliant
-- [ ] Content usage acknowledgment
+- [x] Open Source with permissive license (MIT/Apache/BSD)
+- [x] GitHub repository public
+- [x] Team size within limit (≤ 4 people)
+- [x] Code of Conduct compliant
+- [x] Content usage acknowledgment
 
 ## License
 
