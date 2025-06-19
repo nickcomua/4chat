@@ -16,6 +16,7 @@ import { mergeAiResponse } from "./common"
 import { runNode } from "../services/node"
 import { generateSystemPrompt } from "./system-prompt"
 import { couchdbUrlNode } from "../db/node"
+import { hash } from "effect/Hash"
 
 // Error definitions
 class GetCookiesError extends Schema.TaggedError<GetCookiesError>("GetCookiesError")("GetCookiesError", {
@@ -73,8 +74,14 @@ const SendMessageWorkflow = Workflow.make({
         selectedModel: Schema.String,
         userId: Schema.String,
     }),
-    idempotencyKey: ({ hash }) => {
-        return hash
+    idempotencyKey: ({ messages, chat }) => {
+        return hash(`${chat._id}${messages
+            .filter<typeof ChatUserMessage.Type>((m) => m.type === "ChatUserMessage")
+            .map(({ createdAt, ai }) => `${createdAt}${ai.parts
+                .filter(part => part._tag === "TextPart")
+                .map(part => part.text).join("")}`
+            ).join("")}`
+        ).toString()
     }
 })
 
@@ -146,7 +153,7 @@ const SendMessageWorkflowLayer = SendMessageWorkflow.toLayer(
                 }).pipe(
                     Stream.runFoldEffect(0, Effect.fn(function* (id, chunk) {
                         const chunkMessage = Schema.encodeSync(ChatAssistantMessageChunk)({
-                            _id: `${payload.chat._id}_chank_${payload.messages.length}_${id}_${+new Date()}}`,
+                            _id: `${payload.chat._id}_chank_${payload.messages.length}_${id}`,
                             type: "ChatAssistantMessageChunk",
                             ai: chunk
                         })
