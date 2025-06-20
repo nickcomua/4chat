@@ -236,8 +236,9 @@ export default function ChatArea({ chatId }: { chatId: string }) {
     if (messages.at(-1)?.type === "ChatUserMessage") return false
     const index = Number(messageId.split("_")[2])
     console.log(index)
-    const sendMessages = messages.slice(0, index + 1)
-    console.assert(sendMessages.length % 2 === 1)
+    const sendMessagesStart = messages.slice(0, index)
+    const sendMessages = messages[index]
+    console.assert(sendMessagesStart.length % 2 === 0)
     const toDelete = messages.slice(index + 1)
     console.assert(toDelete.length % 2 === 1)
     const toDeleteErrors = errors.filter(({ _id }) => Number(_id.split('_')[2]) >= index)
@@ -245,10 +246,14 @@ export default function ChatArea({ chatId }: { chatId: string }) {
       _id: row._id,
       _rev: row._rev,
       _deleted: true
-    }) as unknown as ChatMessage))
+    }) as unknown as ChatMessage));
+
     sendMessageWorkflow({
       chat: (chat as Chat),
-      messages: sendMessages,
+      messages: [...sendMessagesStart, {
+        ...sendMessages,
+        createdAt: +new Date(),
+      } as ChatUserMessage],
       profile,
       selectedModel,
       hash: chatId + (new Date().toISOString())
